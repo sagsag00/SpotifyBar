@@ -1,4 +1,3 @@
-import colorlog
 import views.buttons
 import views.label
 import views.scales
