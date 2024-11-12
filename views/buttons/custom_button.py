@@ -4,6 +4,13 @@ from api import Spotify
 
 class CustomButton(Button):
     def __init__(self, master: Tk = None, image_path: str = None, **kwargs) -> None:
+        """Custom button class that extends the default `tkinter.Button` class.
+        
+            Args:
+                master (Tk): The master window.
+                image_path (str): The path to the desired button icon.
+                **kwargs: default keyword arguements of `tkinter.Button`
+        """
         if kwargs.get("text"):
             kwargs["text"] = None
             

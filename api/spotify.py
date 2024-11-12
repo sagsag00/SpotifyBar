@@ -7,8 +7,6 @@ import webbrowser
 from logger import logger
     
 class Spotify():
-    """A class that controls Spotify."""
-    
     _instance = None
     _lock = threading.Lock()
     
@@ -20,6 +18,7 @@ class Spotify():
         return cls._instance
     
     def __init__(self) -> None:
+        """A class that controls Spotify."""
         if not hasattr(self, "initialized"):
             self.initialized = True
             token = self.refresh()

@@ -103,6 +103,10 @@ class SpotifyClient():
         return None
     
     def get_repeat_mode(self) -> str | None:
+        """Gets the current active devices' repeat mode. 
+
+            returns: str | None : `off`, `context`, `track`. None if no active device found.
+        """
         url = "https://api.spotify.com/v1/me/player"
         response = requests.get(
             url,

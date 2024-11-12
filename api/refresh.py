@@ -23,9 +23,8 @@ REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
 
 
 class SpotifyAuth:
-    """Spotify authorization.
-    """
     def __init__(self, client_id, client_secret):
+        """Spotify authorization."""
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = "http://localhost:5000/callback"  # The servers url.
@@ -107,8 +106,7 @@ class SpotifyAuth:
         return response.json().get("access_token")
 
     def handle_response(self, response: requests.Response) -> None:
-        """Handle responses to check for errors and output response data for debugging.
-        """
+        """Handle responses to check for errors and output response data for debugging."""
         try:
             response_data = response.json()
             if response.status_code != 200:
@@ -124,6 +122,7 @@ class SpotifyAuth:
             run_simple("localhost", 5000, app, threaded=True)
             
 def shutdown_server():
+    """Shuts down the server"""
     time.sleep(5)  # Sleep for 5 seconds before shutting down
     logger.info("Shutting the server down")
     pid = os.getpid()  # Get the current process ID
@@ -131,6 +130,7 @@ def shutdown_server():
   
 @app.route('/shutdown', methods=['POST'])
 def shutdown():
+    """Shutdown method of the flask server"""
     logger.info("Shutdown signal received")
     threading.Thread(target=shutdown_server).start()  # Start background task
     return 'Server shutting down...', 200 
@@ -138,8 +138,7 @@ def shutdown():
 # Flask route to handle the redirect
 @app.route('/callback')
 def callback():
-    """The website that handles the redirect from the authorization url.
-    """
+    """The website that handles the redirect from the authorization url."""
     code = request.args.get('code')
     spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
     
