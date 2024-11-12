@@ -6,6 +6,7 @@ from views.label import SongLabel
 from PIL import Image, ImageTk
 from gui_manager import GuiManager
 from logger import logger
+from screeninfo import get_monitors
 
 class App():
     """A blueprint for the app.
@@ -229,24 +230,38 @@ class App():
             logger.debug(f"App.__move_window: Moving window to ({new_x}, {new_y}).")  
 
     def __snap_to_nearest_position(self, width, height):
-        """Snaps the screen to the closest position: `top_start, top_end, bottom_start, bottom_end`
-
-        args_
-            width (int): The width of the screen.
-            height (int): The height of the screen.
+        """Snaps the window to the closest position: `top_start, top_end, bottom_start, bottom_end`
+        
+        args:
+            width (int): The width of the window.
+            height (int): The height of the window.
         """
         logger.debug("App.__snap_to_nearest_position: Snapping window to nearest position.")
-        screen_width = self.__window.winfo_screenwidth()
-        screen_height = self.__window.winfo_screenheight()
+
+        # Get current window position
         current_x = self.__window.winfo_x()
         current_y = self.__window.winfo_y()
 
-        # Define possible snap positions based on the current window size
+        # Find the monitor that the window is currently on
+        for monitor in get_monitors():
+            if (monitor.x <= current_x < monitor.x + monitor.width) and \
+            (monitor.y <= current_y < monitor.y + monitor.height):
+                screen_x, screen_y = monitor.x, monitor.y
+                screen_width, screen_height = monitor.width, monitor.height
+                break
+        else:
+            # Default to primary monitor if no specific match is found
+            monitor = get_monitors()[0]
+            screen_x, screen_y = monitor.x, monitor.y
+            screen_width, screen_height = monitor.width, monitor.height
+
+        # Define possible snap positions based on the monitor's size and position
         positions = {
-            "top_start": (self.__padding, self.__padding),
-            "top_end": (screen_width - width - 2 * self.__padding - self.__padding//2, self.__padding),
-            "bottom_start": (self.__padding, screen_height - height - self.__padding),
-            "bottom_end": (screen_width - width - 2 * self.__padding - self.__padding//2, screen_height - height - self.__padding),
+            "top_start": (screen_x + self.__padding, screen_y + self.__padding),
+            "top_end": (screen_x + screen_width - width - 2 * self.__padding - self.__padding // 2, screen_y + self.__padding),
+            "bottom_start": (screen_x + self.__padding, screen_y + screen_height - height - self.__padding),
+            "bottom_end": (screen_x + screen_width - width - 2 * self.__padding - self.__padding // 2,
+                        screen_y + screen_height - height - self.__padding),
         }
 
         # Find the closest position to snap to

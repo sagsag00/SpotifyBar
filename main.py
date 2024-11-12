@@ -6,6 +6,8 @@ from gui import App
 from api import Spotify
 from logger import logger
 
+#TODO make the app work on a second monitor too.
+
 if __name__ == "__main__":
     
     spotify = Spotify()

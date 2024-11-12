@@ -21,8 +21,6 @@ class GuiManager():
             song_label, artist_label, album_label, time_label, playback_scale, volume_scale, song_pic
         """
         
-        logger.critical("TODO: Test the refresh function.")
-
         self.master = master
         self.views = {}
         self.spotify = Spotify()
