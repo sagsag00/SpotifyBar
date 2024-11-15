@@ -177,7 +177,7 @@ class GuiManager():
         if not self.pause_button.is_active:
             self.pause_button.is_active = True
 
-        threading.Thread(target=self._skip_to_nex).start()
+        threading.Thread(target=self._skip_to_next).start()
         threading.Thread(target=self._load_next_track_details).start()
                
         logger.debug("GuiManager.on_next_button_click: Function has completed.")
