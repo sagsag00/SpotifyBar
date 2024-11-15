@@ -1,7 +1,7 @@
 # SpotifyBar 
 The app lets you have a tiny spotify bar at the borders of your screen:
 
-![alt text](image.png)
+![alt text](resources/images/example.png)
 
 # Setup
 To setup the app, you need to go to [spotify api dashboard](https://developer.spotify.com/dashboard) and create an app.
