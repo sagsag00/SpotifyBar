@@ -38,7 +38,7 @@ class PlaybackScale(Scale):
         
         logger.debug(f"PlaybackScale.place: PlaybackScale placed at x: {scale_x}, y: {scale_y}, width: {scale_width}")
         
-    def set_stop_callback(self, callback: Callable) -> None:
+    def set_callback(self, callback: Callable) -> None:
         """Sets the callback to be called when stop_timer is executed."""
         self.stop_callback = callback
         logger.debug("PlaybackScale.set_stop_callback: Stop callback set.")

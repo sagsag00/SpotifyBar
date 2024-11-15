@@ -9,6 +9,7 @@ import requests
 from io import BytesIO
 import time
 from logger import logger
+from typing import Callable, Any
 
 class GuiManager():
     def __init__(self, master, **kwargs) -> None:
@@ -49,7 +50,7 @@ class GuiManager():
         logger.info("GuiManager.load_all: Loading all views...")
         
         if hasattr(self, "playback_scale") and isinstance(self.playback_scale, PlaybackScale):
-            self.playback_scale.set_stop_callback(self.on_playback_scale_next)
+            self.playback_scale.set_callback(self.on_playback_scale_next)
             self.playback_scale.load()
             logger.debug("GuiManager.load_all: Playback scale loaded.")
 
@@ -58,11 +59,11 @@ class GuiManager():
             logger.debug("GuiManager.load_all: Volume scale loaded.")
 
         if hasattr(self, "next_button") and isinstance(self.next_button, NextButton):
-            self.next_button.set_callable(self.on_next_button_click)
+            self.next_button.set_callback(self.on_next_button_click)
             logger.debug("GuiManager.load_all: Next button loaded.")
 
         if hasattr(self, "previous_button") and isinstance(self.previous_button, PreviousButton):
-            self.previous_button.set_callable(self.on_previous_button_click)
+            self.previous_button.set_callback(self.on_previous_button_click)
             logger.debug("GuiManager.load_all: Previous button loaded.")
 
         if hasattr(self, "pause_button") and isinstance(self.pause_button, PauseButton):
@@ -94,12 +95,12 @@ class GuiManager():
                 self.load_all()
 
         if hasattr(self, "artist_label") and isinstance(self.artist_label, SongLabel):
-            self.artist_label.set_callable(self.on_button_click_artist)
+            self.artist_label.set_callback(self.on_button_click_artist)
             self.artist_label.load(type=1)
             logger.debug("GuiManager.load_all: Artist label loaded.")
 
         if hasattr(self, "album_label") and isinstance(self.album_label, SongLabel):
-            self.album_label.set_callable(self.on_button_click_album)
+            self.album_label.set_callback(self.on_button_click_album)
             self.__load_album_label()
             logger.debug("GuiManager.load_all: Album label loaded.")
 
@@ -159,6 +160,7 @@ class GuiManager():
         self.spotify.skip_to_previous()
         time.sleep(1)
         self.__current_track_load_views()
+        self.playback_scale.load()
         
         logger.debug("GuiManager.on_previous_button_click: Function has completed.")
         

@@ -26,9 +26,9 @@ class SongLabel(Label):
         logger.debug(f"SongLabel.__init__: SongLabel initialized with font_size={font_size}, is_bold={is_bold}, max_width={max_width}")
 
         
-    def set_callable(self, callable: Callable) -> None:
+    def set_callback(self, callable: Callable) -> None:
         self.callable = callable
-        logger.debug("SongLabel.set_callable: Function has completed.") 
+        logger.debug("SongLabel.set_callback: Function has completed.") 
      
     def on_click(self):
         if self.callable:

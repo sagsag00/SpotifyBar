@@ -8,9 +8,9 @@ class PreviousButton(CustomButton):
         
         self.callable: Callable = None
       
-    def set_callable(self, callable: Callable) -> None:
+    def set_callback(self, callable: Callable) -> None:
         self.callable = callable
-        logger.debug("PreviousButton.set_callable: Function has completed.")
+        logger.debug("PreviousButton.set_callback: Function has completed.")
 
     
     def on_click(self):

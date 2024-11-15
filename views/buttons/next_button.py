@@ -9,10 +9,10 @@ class NextButton(CustomButton):
     
         self.callable: Callable = None
            
-    def set_callable(self, callable: Callable) -> None:
+    def set_callback(self, callable: Callable) -> None:
         self.callable = callable  
            
-        logger.debug("NextButton.set_callable: Function has completed.") 
+        logger.debug("NextButton.set_callback: Function has completed.") 
      
     def on_click(self):
         threading.Thread(target=self.callable).start()
