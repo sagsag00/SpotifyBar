@@ -28,3 +28,6 @@ If the file is left empty, the default settings will be set.
 Opacity will be set as a float, meaning values between 0 -> 1 including both ends.
 
 Options for the position: `top_start`, `top_end`, `bottom_start`, `bottom_end`.
+
+You can change the button resources if you'd like. Go to the resources/buttons folder.
+Inside you can see each resource and change it as you like.
