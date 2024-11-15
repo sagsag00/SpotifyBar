@@ -370,7 +370,6 @@ class SpotifyClient():
         
         if not response.text.strip():
             return None
-        
         response_json = response.json()
         
         if "device" in response_json and response_json["device"] is not None:

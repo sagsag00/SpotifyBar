@@ -178,7 +178,6 @@ class GuiManager():
 
         if not self.pause_button.is_active:
             self.pause_button.is_active = True
-            self.pause_button.change_image()
 
         threading.Thread(target=self.__skip_to_next).start()
         threading.Thread(target=self.__load_next_track_details).start()
