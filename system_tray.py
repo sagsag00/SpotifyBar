@@ -30,6 +30,8 @@ class SystemTray:
             MenuItem("Previous", self.previous_track),
             MenuItem("Exit", self.exit_app)
         )
+        self.tray.title = "Spotify Bar"
+        
         
         self.gui_manager: GuiManager = None
 
