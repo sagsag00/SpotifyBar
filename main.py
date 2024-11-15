@@ -5,6 +5,8 @@ import gui_manager
 from gui import App
 from api import Spotify
 from logger import logger
+from system_tray import SystemTray
+import threading
 
 #TODO make the app work on a second monitor too.
 
@@ -46,6 +48,11 @@ if __name__ == "__main__":
     background_color: str = config_values.get("background_color", "lightgray") or "lightgray"
 
     app = App(program_title, "icon.ico", position=position, padding=padding, opacity=opacity, background_color=background_color)
+    tray = SystemTray()
+    
+    tray_process = threading.Thread(target=tray.run) 
+    
+    tray_process.start()
     app.run()
     
-    #TODO maybe decrypt the .env file.
+    #TODO maybe encrypt the .env file.

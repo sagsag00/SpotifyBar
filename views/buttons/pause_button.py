@@ -63,5 +63,7 @@ class PauseButton(CustomButton):
             self._is_active = not self._is_active  
             threading.Thread(target=self.change_image())
             
-            logger.debug("PauseButton.is_active.setter: Function has completed.") 
+            logger.debug("PauseButton.is_active.setter: Function has completed.")
+        
+        
         

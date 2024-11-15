@@ -7,6 +7,7 @@ from PIL import Image, ImageTk
 from gui_manager import GuiManager
 from logger import logger
 from screeninfo import get_monitors
+from system_tray import SystemTray
 
 class App():
     """A blueprint for the app.
@@ -20,6 +21,8 @@ class App():
         self.__position: str = position
         self.__padding: int = padding 
         self.__background_color: str = background_color
+        
+        self.system_tray = SystemTray()
         self.__setup()
 
     def __setup(self) -> None:
@@ -148,6 +151,8 @@ class App():
                 song_pic=self.__song_pic, song_label=self.song_name, artist_label=self.artist_name,
                 album_label=self.album_name
                 )
+        
+        self.system_tray.gui_manager = self.gui_manager
 
     def __set_initial_position(self, width, height) -> None:
         """Sets the initial position of the window based on the specified corner.

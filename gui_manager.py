@@ -11,8 +11,6 @@ import time
 from logger import logger
 
 class GuiManager():
-    """Manages the given views."""
-    
     def __init__(self, master, **kwargs) -> None:
         """Manages the given views.
 
@@ -129,7 +127,7 @@ class GuiManager():
             self.pause_button.change_image()
         
         self.skip_count = 1
-        threading.Thread(target=self.__load_next_track_details).start()
+        threading.Thread(target=self._load_next_track_details).start()
         
         logger.debug("GuiManager.on_playback_scale_next: Function has completed.")
         
@@ -179,8 +177,8 @@ class GuiManager():
         if not self.pause_button.is_active:
             self.pause_button.is_active = True
 
-        threading.Thread(target=self.__skip_to_next).start()
-        threading.Thread(target=self.__load_next_track_details).start()
+        threading.Thread(target=self._skip_to_nex).start()
+        threading.Thread(target=self._load_next_track_details).start()
                
         logger.debug("GuiManager.on_next_button_click: Function has completed.")
         
@@ -203,6 +201,11 @@ class GuiManager():
             logger.error("GuiManager.on_button_click_artist: Spotify app could not open")
         
         self.spotify.open_uri_in_spotify(self.spotify.get_album_uri())
+        
+    def change_pause_state(self) -> None:
+        """Changes the pause buttons' state."""
+        self.pause_button.on_click()
+        self.playback_scale.load()
        
     def __check_for_changes_song(self) -> None:
         """Checks for changes in the Spotify app of the track itself. 
@@ -234,9 +237,9 @@ class GuiManager():
                 threading.Thread(target=self.pause_button.load())
             time.sleep(1)
     
-    def __skip_to_next(self) -> None:
+    def _skip_to_next(self) -> None:
         """Skips to the next song(s), depands on self.skip_count"""
-        logger.info("GuiManager.__skip_to_next: Skipping to next track.")
+        logger.info("GuiManager._skip_to_next: Skipping to next track.")
         self.skipping = True
         for _ in range(self.skip_count):
             self.spotify.skip_to_next()
@@ -244,13 +247,13 @@ class GuiManager():
         self.playback_scale.reset()
         
         self.skipping = False
-        logger.debug(f"GuiManager.__skip_to_next: Total skips: {self.skip_count}")
-        logger.debug(f"GuiManager.__skip_to_next: Function has completed.")
+        logger.debug(f"GuiManager._skip_to_next: Total skips: {self.skip_count}")
+        logger.debug(f"GuiManager._skip_to_next: Function has completed.")
 
         
-    def __load_next_track_details(self):
+    def _load_next_track_details(self):
         """Loads the next track in queue details."""
-        logger.info("GuiManager.__load_next_track_details: Loading next track details.")
+        logger.info("GuiManager._load_next_track_details: Loading next track details.")
         queue = self.spotify.get_queue()
 
         if self.skip_count <= len(queue):
@@ -263,7 +266,7 @@ class GuiManager():
             self.playback_scale.reset()
             self.playback_scale.end_time.miliseconds = target_track["duration_ms"]
 
-        logger.debug(f"GuiManager.__load_next_track_details: Function has completed.")
+        logger.debug(f"GuiManager._load_next_track_details: Function has completed.")
 
         
     def __current_track_load_views(self) -> None:
