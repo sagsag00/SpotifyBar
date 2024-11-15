@@ -5,6 +5,7 @@ from .spotify_client import SpotifyClient
 import threading
 import webbrowser
 from logger import logger
+import os
     
 class Spotify():
     _instance = None
@@ -52,15 +53,15 @@ class Spotify():
         """
         try:
             subprocess.Popen(
-                ["spotify.exe"],
-                stdout=subprocess.DEVNULL, 
-                stderr=subprocess.DEVNULL,  
-                creationflags=subprocess.CREATE_NO_WINDOW
+                ["start", "spotify:",],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                shell=True  # Necessary to use 'start' command
             )
-            logger.info("Spotify.open_spotify_app: Client opened.")
+            logger.info("Spotify.open_spotify_app: Spotify client opened.")
             return True
-        except Exception:
-            logger.warning("Spotify.open_spotify_app: Client 'spotify.exe' not found.")
+        except Exception as e:
+            logger.warning(f"Spotify.open_spotify_app: Failed to open Spotify. Error: {e}")
             return False
 
     def play(self) -> bool:
