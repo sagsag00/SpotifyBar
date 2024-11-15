@@ -53,6 +53,9 @@ class SystemTray:
             logger.warning("SystemTray.play_pause: GUI is not set yet. Please wait a few moments until the GUI is up.")
             return
         self.gui_manager.skip_count = 1
+        if not self.gui_manager.pause_button.is_active:
+            self.gui_manager.pause_button.is_active = True
+        
         threading.Thread(target=self.gui_manager._skip_to_next).start()
         threading.Thread(target=self.gui_manager._load_next_track_details).start()
 
