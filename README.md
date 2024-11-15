@@ -24,5 +24,7 @@ You can customize some aspects of the app inside the config.ini file created in 
     padding=
 
 If the file is left empty, the default settings will be set.
+
 Opacity will be set as a float, meaning values between 0 -> 1 including both ends.
+
 Options for the position: `top_start`, `top_end`, `bottom_start`, `bottom_end`.
