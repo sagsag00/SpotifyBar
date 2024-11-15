@@ -13,3 +13,16 @@ After you've created the app, go to the apps' settings and save the Client ID an
     REFRESH_TOKEN:{LEAVE_EMPTY}
 
 Store the .env file inside the base folder of the app.
+
+# Customization
+You can customize some aspects of the app inside the config.ini file created in the base folder of the app:
+
+    program_title=
+    opacity=
+    background_color=
+    position=
+    padding=
+
+If the file is left empty, the default settings will be set.
+
+Options for the position: `top_start`, `top_end`, `bottom_start`, `bottom_end`.
