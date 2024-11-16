@@ -42,11 +42,9 @@ class PlaybackScale(Scale):
         """Sets the callback to be called when stop_timer is executed."""
         self.stop_callback = callback
         logger.debug("PlaybackScale.set_stop_callback: Stop callback set.")
-        
-    def convert_time_to_value(self):
-        raise NotImplementedError
     
     def start(self):
+        """Starts the timer and playback moving animation from scratch, while syncing it with spotify."""
         self.load()
         playback_state = self.spotify.get_playback_state_ms()
         if not playback_state:
@@ -59,19 +57,18 @@ class PlaybackScale(Scale):
         logger.debug("PlaybackScale.start: Playback started.")
     
     def start_timer(self, time_difference_ms: int = 0) -> None:
-        """Starts the timer and updates every second."""
+        """Starts the timer and updates every second. Takes into account the time difference and tries to eliminate any delays."""
         self.curr_time.seconds += 1
         if self.curr_time.seconds >= 60:
             self.curr_time.seconds = 0
             self.curr_time.minutes += 1
             
         if self.curr_time.seconds % 20 == 0 and self.curr_time.seconds != 0:
-            self.load()
-            self.load()
-            self.load()
+            self.load() # Loading every 20 seconds to sync the timer
 
         delay = time_difference_ms if not hasattr(self, "_timer_id") else 1000
         
+        # Stop one second before
         if self.curr_time + 1 >= self.end_time:
             self.stop_timer()
             self.stop_callback()
@@ -89,6 +86,7 @@ class PlaybackScale(Scale):
             logger.debug("PlaybackScale.stop_timer: Timer stopped.")
             
     def reset(self) -> None:
+        """Resets the timer to 00:00"""
         self.stop_timer()
         self.curr_time.curr_time = "00:00"
         self.start_timer()
@@ -97,12 +95,14 @@ class PlaybackScale(Scale):
         logger.debug("PlaybackScale.reset: PlaybackScale reset.")
             
     def load(self):
+        """Loads the current playback current time and end time to the current playing track."""
         self.curr_time.curr_time = self.spotify.get_playback_state_timer()
         self.end_time.curr_time = self.spotify.get_song_duration_timer()
         self.value = (self.curr_time.miliseconds / (self.end_time.miliseconds + 0.1)) * 100
         logger.debug(f"PlaybackScale.load: Loaded current time: {self.curr_time.curr_time}, end time: {self.end_time.curr_time}.")
         
     def _move_button_horizontal(self, event=None) -> None:
+        """Moves the button to the given position, if there was an event, stop the animation and change the timer to the current events time."""
         super()._move_button_horizontal(event)
 
         if event:
@@ -112,6 +112,7 @@ class PlaybackScale(Scale):
             logger.debug(f"PlaybackScale._move_button_horizontal: Button moved horizontally. Current time set to {self.curr_time.miliseconds}ms.")
 
     def _on_button_release(self, event=None) -> None:
+        """If there is an event, start the timer from the location, set the playback location to there and continue the animation."""
         if event:
             self.curr_time.miliseconds = int(self.end_time.miliseconds * (self.value / 100)) - 1
             self.spotify.set_playback_state_ms(self.curr_time.miliseconds)

@@ -1,6 +1,6 @@
 from views.scales import PlaybackScale, VolumeScale
 from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton
-from views.label import SongLabel, TimeLabel
+from views.label import SongLabel, TimeLabel, SONG, ARTIST, ALBUM
 import threading
 from api import Spotify
 from tkinter import Label, PhotoImage
@@ -24,8 +24,8 @@ class GuiManager():
         self.views = {}
         self.spotify = Spotify()
         
-        self.skip_count = 0
-        self.last_skip_time = 0
+        self.skip_count = 0 
+        self.last_skip_time = 0 
         self.skip_reset_duration = 1
         self.skipping = False
         self.finished_song = False
@@ -83,7 +83,7 @@ class GuiManager():
             logger.debug("GuiManager.load_all: Repeat button loaded.")
 
         if hasattr(self, "song_label") and isinstance(self.song_label, SongLabel):
-            self.song_label.load(type=0)
+            self.song_label.load(type=SONG)
             logger.debug("GuiManager.load_all: Song label loaded.")
             
             if self.song_label.title == "Unknown":
@@ -96,7 +96,7 @@ class GuiManager():
 
         if hasattr(self, "artist_label") and isinstance(self.artist_label, SongLabel):
             self.artist_label.set_callback(self.on_button_click_artist)
-            self.artist_label.load(type=1)
+            self.artist_label.load(type=ARTIST)
             logger.debug("GuiManager.load_all: Artist label loaded.")
 
         if hasattr(self, "album_label") and isinstance(self.album_label, SongLabel):
@@ -275,8 +275,8 @@ class GuiManager():
         """Loads the current track views"""
         logger.info("GuiManager.__current_track_load_views: Loading currents track views")
         
-        self.song_label.load(type=0)
-        self.artist_label.load(type=1)
+        self.song_label.load(type=SONG)
+        self.artist_label.load(type=ARTIST)
         self.__load_album_label()
         self.__load_song_image()
         
@@ -298,7 +298,7 @@ class GuiManager():
         if title:
             self.album_label.title = f"- {title}"
         else:
-            self.album_label.load(type=2)
+            self.album_label.load(type=ALBUM)
         
         logger.debug("GuiManager.__load_album_label: Function has completed.")
 

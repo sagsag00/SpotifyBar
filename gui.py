@@ -10,8 +10,6 @@ from screeninfo import get_monitors
 from system_tray import SystemTray
 
 class App():
-    """A blueprint for the app.
-    """
     def __init__(self, title: str, icon_path: str, position = "top_start", padding = 10, opacity: float = 1, background_color = "lightgray") -> None:
         logger.debug(f"App.__init__: Initializing application with {title=}, {icon_path=}, {position=}, {padding=}, {opacity=}, {background_color=}")
         self.__window: Tk = Tk()
@@ -22,6 +20,7 @@ class App():
         self.__padding: int = padding 
         self.__background_color: str = background_color
         
+        # Creating a system tray for later use.
         self.system_tray = SystemTray()
         self.__setup()
 
@@ -85,13 +84,12 @@ class App():
         self.window.protocol("WM_DELETE_WINDOW", self.on_close)
         
     def on_close(self):
-        # Actions to perform when the window is closed
+        """Actions to perform when the window is closed"""
         logger.info("App closed.")
         self.window.destroy() 
         
     def __create_buttons(self, window: Tk) -> None:
-        """A function that creates the spotify buttons for a given window.
-        """
+        """A function that creates the spotify buttons for a given window."""
         logger.debug("App.__create_buttons: Creating buttons.")
         self.playback_scale = PlaybackScale(window)
         self.playback_scale.place(relx=0.5, rely=0.9, anchor="center")
@@ -101,7 +99,7 @@ class App():
         self.exit_button = ExitButton(window, width=100)
         self.exit_button.place(relx=1.0, rely=0.0, x=0, y=0, anchor="ne")
         
-        window.update_idletasks()
+        window.update_idletasks() # Update the window.
         self.pause_button = PauseButton(window)
         self.pause_button.place(relx=0.478, y=self.playback_scale.winfo_y() - 15, anchor="center")
         
@@ -144,6 +142,7 @@ class App():
         
         logger.debug("App.__create_buttons: Finished creating buttons.")
         
+        # Create GUIManager
         self.gui_manager = GuiManager(
                 window, playback_scale=self.playback_scale, volume_scale=self.volume_scale,
                 exit_button=self.exit_button, pause_button=self.pause_button, next_button=self.next_button,
@@ -152,7 +151,7 @@ class App():
                 album_label=self.album_name
                 )
         
-        self.system_tray.gui_manager = self.gui_manager
+        self.system_tray.gui_manager = self.gui_manager # Updates the system_trays gui_manager to match this one
 
     def __set_initial_position(self, width, height) -> None:
         """Sets the initial position of the window based on the specified corner.
@@ -172,7 +171,7 @@ class App():
             x, y = self.__padding, screen_height - height - self.__padding
         elif self.__position == "bottom_end":
             x, y = screen_width - width - 2 * self.__padding - self.__padding//2, screen_height - height - self.__padding
-        else:
+        else: 
             x, y = self.__padding, self.__padding
 
         self.__window.geometry(f"{width}x{height}+{x}+{y}")
@@ -218,10 +217,9 @@ class App():
             self.__window.x = event.x
             self.__window.y = event.y
             
-
     def __move_window(self, event: Event):
-        """Moves the window on left click drag.
-        """
+        """Moves the window on left click drag."""
+        # If the class is not of a window class, don't trigger the moving event.
         if not event.widget.winfo_class() == "Tk":
             return
         

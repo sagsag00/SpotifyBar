@@ -11,6 +11,7 @@ class SystemTray:
     _lock = threading.Lock()
     
     def __new__(cls, *args, **kwargs):
+        # Making the class singleton.
         if not cls._instance:
             with cls._lock:
                 if not cls._instance:
@@ -18,9 +19,11 @@ class SystemTray:
         return cls._instance
     
     def __init__(self) -> None:
+        """Initializes the system tray menu."""
         if hasattr(self, "initialized"):
             return
         
+        # Initializing the system tray menu.
         self.initialized = True
         self.tray = Icon("media_controls")
         self.tray.icon = self.create_image()
@@ -32,7 +35,8 @@ class SystemTray:
         )
         self.tray.title = "Spotify Bar"
         
-        
+        # Initializing the gui manager as a class member, when created in the `gui.py` code, it will be initialized here.
+        # See gui.py: App.__create_buttons method for more info.
         self.gui_manager: GuiManager = None
 
     def play_pause(self) -> None:
