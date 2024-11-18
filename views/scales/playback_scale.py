@@ -11,6 +11,7 @@ class PlaybackScale(Scale):
         self.master: Tk = master
         self._timer_id: str = None
         self.stop_callback: Callable = None
+        self._animation_id: str = None
         
         custom_font = font.Font(family="David", size=8, weight="bold")
         
@@ -57,33 +58,54 @@ class PlaybackScale(Scale):
         logger.debug("PlaybackScale.start: Playback started.")
     
     def start_timer(self, time_difference_ms: int = 0) -> None:
-        """Starts the timer and updates every second. Takes into account the time difference and tries to eliminate any delays."""
-        self.curr_time.seconds += 1
-        if self.curr_time.seconds >= 60:
-            self.curr_time.seconds = 0
-            self.curr_time.minutes += 1
-            
-        if self.curr_time.seconds % 20 == 0 and self.curr_time.seconds != 0:
-            self.load() # Loading every 20 seconds to sync the timer
+        """Starts the timer and updates every second. Prevents multiple timers."""
+        # Prevent multiple timers from running
+        if getattr(self, "_is_timer_running", False):
+            return  # Exit if the timer is already running
+        
+        self._is_timer_running = True  # Mark the timer as running
+        
+        def timer_tick():
+            """Internal function to handle the timer's ticking logic."""
+            self.curr_time.seconds += 1
+            if self.curr_time.seconds >= 60:
+                self.curr_time.seconds = 0
+                self.curr_time.minutes += 1
 
-        delay = time_difference_ms if not hasattr(self, "_timer_id") else 1000
-        
-        # Stop one second before
-        if self.curr_time + 1 >= self.end_time:
-            self.stop_timer()
-            self.stop_callback()
-            logger.debug("PlaybackScale.start_timer: End time reached, stopping playback.")
-            return
-        
-        self._timer_id = self.after(delay, self.start_timer)
-        logger.debug(f"PlaybackScale.start_timer: Timer started with delay: {delay}ms.")
+            # Sync every 20 seconds
+            if self.curr_time.seconds % 20 == 0 and self.curr_time.seconds != 0:
+                self.load()
+
+            # Check if we've reached the end time
+            if self.curr_time >= self.end_time:
+                logger.critical("Hi")
+                self.load()
+                self.stop_timer()
+                return
+
+            # Stop one second before the end of the song
+            if self.curr_time + 1 >= self.end_time:
+                self.stop_timer()
+                self.stop_callback()
+                logger.debug("PlaybackScale.start_timer: End time reached, stopping playback.")
+                return
+
+            # Schedule the next tick
+            self._timer_id = self.after(1000, timer_tick)
+            logger.debug("PlaybackScale.start_timer: Timer tick.")
+
+        # Start the first tick with the optional time difference delay
+        self._timer_id = self.after(time_difference_ms or 1000, timer_tick)
 
     def stop_timer(self) -> None:
         """Stops the timer."""
-        if self._timer_id is not None:
-            self.after_cancel(self._timer_id)
-            self._timer_id = None 
-            logger.debug("PlaybackScale.stop_timer: Timer stopped.")
+        self._stop_animation()
+        if getattr(self, "_is_timer_running", False):
+            self._is_timer_running = False 
+            if self._timer_id is not None:
+                self.after_cancel(self._timer_id)
+                self._timer_id = None
+                logger.debug("PlaybackScale.stop_timer: Timer stopped.")
             
     def reset(self) -> None:
         """Resets the timer to 00:00"""
@@ -99,6 +121,9 @@ class PlaybackScale(Scale):
         self.curr_time.curr_time = self.spotify.get_playback_state_timer()
         self.end_time.curr_time = self.spotify.get_song_duration_timer()
         self.value = (self.curr_time.miliseconds / (self.end_time.miliseconds + 0.1)) * 100
+
+        if self.curr_time.curr_time > self.end_time.curr_time:
+            self.stop_timer()
         logger.debug(f"PlaybackScale.load: Loaded current time: {self.curr_time.curr_time}, end time: {self.end_time.curr_time}.")
         
     def _move_button_horizontal(self, event=None) -> None:
@@ -108,7 +133,6 @@ class PlaybackScale(Scale):
         if event:
             self.curr_time.miliseconds = int(self.end_time.miliseconds * (self.value / 100))
             self.stop_timer()
-            self._stop_animation()
             logger.debug(f"PlaybackScale._move_button_horizontal: Button moved horizontally. Current time set to {self.curr_time.miliseconds}ms.")
 
     def _on_button_release(self, event=None) -> None:

@@ -9,7 +9,7 @@ import requests
 from io import BytesIO
 import time
 from logger import logger
-from typing import Callable, Any
+from typing import Union
 
 class GuiManager():
     def __init__(self, master, **kwargs) -> None:
@@ -29,8 +29,10 @@ class GuiManager():
         self.skip_reset_duration = 1
         self.skipping = False
         self.finished_song = False
+        self._check_manager_thread_id = None
         self._check_song_thread_id = None
         self._check_pause_thread_id = None
+        self.current_track = None
         
         allowed_keys = {
             "exit_button", "next_button", "previous_button", "pause_button", "repeat_button",
@@ -71,7 +73,7 @@ class GuiManager():
             self.pause_button.load()
             logger.debug("GuiManager.load_all: Pause button loaded.")
             
-            if self.pause_button.is_playback_active() and hasattr(self, "playback_scale") and isinstance(self.playback_scale, PlaybackScale):
+            if self.pause_button.is_active and hasattr(self, "playback_scale") and isinstance(self.playback_scale, PlaybackScale):
                 self.playback_scale.start()
 
         if hasattr(self, "shuffle_button") and isinstance(self.shuffle_button, ShuffleButton):
@@ -110,25 +112,20 @@ class GuiManager():
 
         logger.debug("GuiManager.load_all: Function has completed.")
         
-        if self._check_song_thread_id is None:
-            threading.Thread(target=self.__check_for_changes_song).start()
-            logger.debug("GuiManager.load_all: Started background thread to check for changes.")
-        if self._check_pause_thread_id is None:
-            threading.Thread(target=self.__check_for_changes_pause).start()
-            logger.debug("GuiManager.load_all: Started background thread to check for changes.")
+        if self._check_manager_thread_id is None:
+            threading.Thread(target=self.__changes_check_manager).start()
+            logger.debug("GuiManager.load_all: Started background thread.")
                     
     def on_playback_scale_next(self):
         """Callback function executed when playback_scale calls stop_timer."""
         logger.info("GuiManager.on_playback_scale_next: Playback scale next callback triggered.")
         
         self.finished_song = True
+        if self.pause_button.is_active:
+            self.pause_button.is_active = True
         
-        if not self.pause_button.is_active:
-            self.pause_button.is_active = False
-            self.pause_button.change_image()
-        
-        self.skip_count = 1
-        threading.Thread(target=self._load_next_track_details).start()
+            self.skip_count = 1
+            threading.Thread(target=self._load_next_track_details).start()
         
         logger.debug("GuiManager.on_playback_scale_next: Function has completed.")
         
@@ -208,7 +205,24 @@ class GuiManager():
         """Changes the pause buttons' state."""
         self.pause_button.on_click()
         self.playback_scale.load()
-       
+    
+    def __changes_check_manager(self) -> None:
+        """Manages the check threads."""
+        logger.info("GuiManager.__changes_check_manager: Started checking for song changes.")
+        self._check_manager_thread_id = "_check_thread"
+        
+        if self._check_song_thread_id is None:
+            threading.Thread(target=self.__check_for_changes_song).start()
+            logger.debug("GuiManager.load_all: Started background thread to check for changes.")
+        if self._check_pause_thread_id is None:
+            threading.Thread(target=self.__check_for_changes_pause).start()
+            logger.debug("GuiManager.load_all: Started background thread to check for changes.")
+        
+        # Doing this to send only 1 api request instead of 2.
+        while True:
+            self.current_track: Union[str, None] = self.spotify.get_current_playing_track()  
+            time.sleep(1) 
+    
     def __check_for_changes_song(self) -> None:
         """Checks for changes in the Spotify app of the track itself. 
         (Meaning if the song was changed in Spotify, the app will register the change)"""
@@ -216,12 +230,30 @@ class GuiManager():
         self._check_song_thread_id = "_check_thread"
         
         while True:
+            if not self.pause_button.is_active:
+                time.sleep(10)
+                continue
+            
             if self.skipping or self.finished_song:
                 self.finished_song = False
                 time.sleep(10)
                 continue
             
-            if self.song_label.title[:10] != self.spotify.get_song_title()[:10]:
+            if self.current_track is None:
+                time.sleep(10)
+                continue
+            
+            if not self.current_track.get("item", None):
+                time.sleep(10)
+                continue
+            
+            if not self.current_track["item"].get("name", None):
+                time.sleep(10)
+                continue
+            
+            song_title = self.current_track["item"]["name"]
+            
+            if self.song_label.title[:10] != song_title[:10]:
                 self.__current_track_load_views()
                 self.playback_scale.load()
             
@@ -234,7 +266,17 @@ class GuiManager():
         self._check_pause_thread_id = "_check_thread"
         
         while True:
-            if self.pause_button.is_active != self.spotify.is_player_active():
+            if self.current_track is None:
+                time.sleep(10)
+                continue
+            
+            if self.current_track.get("is_playing", None) is None:
+                time.sleep(10)
+                continue
+        
+            is_active: bool = self.current_track["is_playing"]
+            
+            if self.pause_button.is_active != is_active:
                 threading.Thread(target=self.on_pause_button_click(self.pause_button.is_active))
                 threading.Thread(target=self.pause_button.load())
             time.sleep(1)

@@ -210,11 +210,7 @@ class Spotify():
     
     def get_queue(self) -> list:
         """Gets the queue of the current playing device"""
-        queue = self.spotify_client.get_queue()
-        while not queue or queue == []:
-            time.sleep(0.2)
-            queue = self.spotify_client.get_queue()
-        return queue
+        return self.spotify_client.get_queue()
     
     def get_recently_played(self, limit = 20) -> list | None:
         """Gets the recently played of the current playing device"""

@@ -97,7 +97,7 @@ class Scale(Canvas):
             new_val = 50
             logger.debug("No value passed, defaulting to 50.")
         
-        logger.debug(f"Setting scale value to {new_val}")
+        logger.debug(f"Scale.value.setter: Setting scale value to {new_val}")
         
         if self.is_vertical:
             if new_val <= 1:

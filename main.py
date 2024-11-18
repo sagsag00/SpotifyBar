@@ -11,6 +11,7 @@ import threading
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
 
+#TODO Make it so that if the player is paused, the check for playback change thread will be destroyed.
 if __name__ == "__main__":
     spotify = Spotify()
     if not spotify.open_spotify_app():
@@ -54,5 +55,3 @@ if __name__ == "__main__":
     
     tray_process.start()
     app.run()
-    
-    #TODO maybe encrypt the .env file.

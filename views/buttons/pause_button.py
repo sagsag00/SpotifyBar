@@ -1,6 +1,6 @@
 from .custom_button import CustomButton
 from views.scales import PlaybackScale
-from typing import Callable
+from typing import Callable, Union
 from logger import logger
 import threading
 
@@ -9,9 +9,9 @@ class PauseButton(CustomButton):
         super().__init__(master, "resources/buttons/pause.png", **kwargs)
         
         self._is_active = True
-        self.callback: Callable = None
+        self.callback: Callable[[bool], None] = None
         
-    def set_callback(self, callback: Callable):
+    def set_callback(self, callback: Callable[[bool], None]):
         self.callback = callback
         
         logger.debug("PauseButton.set_callback function has completed.") 
@@ -44,9 +44,6 @@ class PauseButton(CustomButton):
         self.config(image=self.tk_image)   
         
         logger.debug("PauseButton.on_click: Function has completed.")  
-            
-    def is_playback_active(self) -> bool:
-        return self._is_active
     
     def change_image(self) -> None:
         image_path = "resources/buttons/pause.png" if self._is_active else "resources/buttons/resume.png"
