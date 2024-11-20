@@ -1,3 +1,17 @@
+# Copyright 2024 Sagi Tsafrir
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 from .refresh import SpotifyAuth, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN
 import time 
 import subprocess
@@ -5,7 +19,7 @@ from .spotify_client import SpotifyClient
 import threading
 import webbrowser
 from logger import logger
-import os
+from typing import Union, Any
     
 class Spotify():
     _instance = None
@@ -72,15 +86,15 @@ class Spotify():
         """Lets you pause playback."""
         return self.spotify_client.pause()
     
-    def is_player_active(self) -> bool | None:
+    def is_player_active(self) -> Union[bool, None]:
         """Returns whether or not the player is active. If player not found will return None."""
         return self.spotify_client.is_player_active()
     
-    def is_shuffle_active(self) -> bool | None:
+    def is_shuffle_active(self) ->Union[bool, None]:
         """Returns whether or not the shuffle is active. If shuffle not found will return None."""
         return self.spotify_client.is_shuffle_active()
     
-    def get_repeat_mode(self) -> str | None:
+    def get_repeat_mode(self) -> Union[str, None]:
         """Returns the active repeat mode. If repeat not found will return None."""
         return self.spotify_client.get_repeat_mode()
     
@@ -104,25 +118,25 @@ class Spotify():
             return self.spotify_client.set_shuffle_mode(False)
         return False
     
-    def get_playback_state_ms(self) -> int | None:
+    def get_playback_state_ms(self) -> Union[int, None]:
         """Gets the playback state in milliseconds."""
         return self.spotify_client.get_playback_state_ms()
     
-    def get_playback_state_seconds(self) -> int | None:
+    def get_playback_state_seconds(self) -> Union[int, None]:
         """Gets the playback state in seconds (floor round)."""
         ms = self.get_playback_state_ms()
         if ms:
             return  ms // 1000 
         return None
     
-    def get_playback_state_minutes(self) -> int | None:
+    def get_playback_state_minutes(self) -> Union[int, None]:
         """Gets the playback state in minutes (floor round)."""
         seconds = self.get_playback_state_seconds()
         if seconds:
             return  seconds // 60 
         return None
     
-    def get_playback_state_timer(self) -> str | None:
+    def get_playback_state_timer(self) -> Union[str, None]:
         """Gets the playback state in this format: "xx:xx"."""
         seconds = self.get_playback_state_seconds()
         minutes = self.get_playback_state_minutes()
@@ -145,25 +159,25 @@ class Spotify():
         """
         return self.set_playback_state_ms(sec * 1000)
     
-    def get_song_duration_ms(self) -> int | None:
+    def get_song_duration_ms(self) -> Union[int, None]:
         """Gets the song duration in milliseconds."""
         return self.spotify_client.get_song_length_ms()  # Assuming you have this method defined in spotify_client
 
-    def get_song_duration_seconds(self) -> int | None:
+    def get_song_duration_seconds(self) -> Union[int, None]:
         """Gets the song duration in seconds (floor round)."""
         ms = self.get_song_duration_ms()
         if ms is not None:
             return ms // 1000
         return None
 
-    def get_song_duration_minutes(self) -> int | None:
+    def get_song_duration_minutes(self) -> Union[int, None]:
         """Gets the song duration in minutes (floor round)."""
         seconds = self.get_song_duration_seconds()
         if seconds is not None:
             return seconds // 60
         return None
 
-    def get_song_duration_timer(self) -> str | None:
+    def get_song_duration_timer(self) -> Union[str, None]:
         """Gets the song duration in this format: "xx:xx"."""
         seconds = self.get_song_duration_seconds()
         minutes = self.get_song_duration_minutes()
@@ -174,7 +188,7 @@ class Spotify():
         
         return None
 
-    def get_current_playing_track(self) -> dict | None:
+    def get_current_playing_track(self) -> Union[dict[str, Any], None]:
         """Gets the current playing tracks data.
 
         Returns:
@@ -183,19 +197,19 @@ class Spotify():
         
         return self.spotify_client.get_current_playing_track()
 
-    def get_song_title(self) -> str | None:
+    def get_song_title(self) -> Union[str, None]:
         """Returns the current playing songs' title"""
         return self.spotify_client.get_song_title()
     
-    def get_song_artist(self) -> str | None:
+    def get_song_artist(self) -> Union[str, None]:
         """Returns the current playing songs' artist"""
         return self.spotify_client.get_song_artist()
     
-    def get_song_album(self) -> str | None:
+    def get_song_album(self) -> Union[str, None]:
         """Returns the current playing songs' album"""
         return self.spotify_client.get_song_album()
     
-    def get_volume(self) -> int | None:
+    def get_volume(self) -> Union[int, None]:
         """Gets the volume of the current playing device"""
         return self.spotify_client.get_volume()
     
@@ -212,15 +226,15 @@ class Spotify():
         """Gets the queue of the current playing device"""
         return self.spotify_client.get_queue()
     
-    def get_recently_played(self, limit = 20) -> list | None:
+    def get_recently_played(self, limit = 20) -> Union[list, None]:
         """Gets the recently played of the current playing device"""
         return self.spotify_client.get_recently_played(limit)
     
-    def get_artist_uri(self) -> str | None:
+    def get_artist_uri(self) -> Union[str, None]:
         """Gets the artists' uri of the current playing tracks' artist"""
         return self.spotify_client.get_artist_uri()
     
-    def get_album_uri(self) -> str | None:
+    def get_album_uri(self) -> Union[str, None]:
         """Gets the albums' uri of the current playing tracks' album"""
         return self.spotify_client.get_album_uri()
     

@@ -1,13 +1,30 @@
-from tkinter import Tk, Event, Label, TclError
+# Copyright 2024 Sagi Tsafrir
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+from tkinter import Tk, Event, Label, TclError, PhotoImage
 import ctypes
 from views.scales import PlaybackScale, VolumeScale
 from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton
-from views.label import SongLabel
-from PIL import Image, ImageTk
+from views.label import SongLabel, BackgroundImage
+from PIL import Image, ImageTk, ImageFilter
 from gui_manager import GuiManager
 from logger import logger
 from screeninfo import get_monitors
 from system_tray import SystemTray
+import requests
+from io import BytesIO
+from api import Spotify
 
 class App():
     def __init__(self, title: str, icon_path: str, position = "top_start", padding = 10, opacity: float = 1, background_color = "lightgray") -> None:
@@ -22,11 +39,11 @@ class App():
         
         # Creating a system tray for later use.
         self.system_tray = SystemTray()
+        self.spotify = Spotify()
         self.__setup()
 
     def __setup(self) -> None:
-        """The setup for the window.
-        """
+        """The setup for the window."""
         logger.debug("App.__setup: Starting window creation.")
         window: Tk = self.__window
         try:
@@ -65,7 +82,7 @@ class App():
         window.bind("<ButtonRelease-1>", lambda event: self.__snap_to_nearest_position(actual_width, actual_height))
         
         window.withdraw() # Hiding the window while loading.
-        
+
         self.__create_buttons(window)
         # Making the window visible and then hiding again for specific animation (a friend asked for this).
         window.deiconify() 
@@ -82,6 +99,47 @@ class App():
         self.window = window
         
         self.window.protocol("WM_DELETE_WINDOW", self.on_close)
+        
+    def set_background_as_image(self):
+        """Sets the background image of the app as the current tracks image."""
+        logger.debug(f"App.set_background_as_image: Loading and background image.")
+        try:
+            image_url = self.spotify.get_cover_url()
+            response = requests.get(image_url)
+            img_data = response.content
+            image = Image.open(BytesIO(img_data))
+            
+            # Resize to match the window size
+            window_width = self.__window.winfo_width()
+            window_height = self.__window.winfo_height()
+            image = self._resize_image(image, window_width, window_height)
+            
+            # Apply a blur effect
+            image = image.filter(ImageFilter.GaussianBlur(radius=25))  # Adjust radius for more/less blur
+            
+            # Convert to Tkinter-compatible image
+            tk_image = ImageTk.PhotoImage(image)
+            
+            # Set the background image
+            self.__bg_label = BackgroundImage(self.__window, image=tk_image)
+            self.__bg_label.image = tk_image  # Keep a reference to prevent garbage collection
+            self.__bg_label.place(x=0, y=0, relwidth=1, relheight=1)
+            self.__bg_label.lower()
+            
+            logger.info("App.set_background_as_image: Background image set successfully.")
+        except Exception as e:
+            logger.error(f"App.set_background_as_image: Error setting background image: {e}")
+            
+    def _resize_image(self, image: PhotoImage, fixed_width: int, fixed_height: int) -> PhotoImage:
+        """Resize the image."""
+        logger.debug("GuiManager._resize_image: Resizing the image without keeping the aspect ratio.")
+        
+        # Resize the image to the fixed dimensions
+        image = image.resize((fixed_width, fixed_height), Image.Resampling.LANCZOS)
+        
+        logger.debug("GuiManager._resize_image: Function has completed.")
+        return image
+
         
     def on_close(self):
         """Actions to perform when the window is closed"""
@@ -155,9 +213,9 @@ class App():
 
     def __set_initial_position(self, width, height) -> None:
         """Sets the initial position of the window based on the specified corner.
-        args_
+        Args:
             width (int): The width of the window.
-            height(int): The height of the window.
+            height (int): The height of the window.
         """
         logger.debug("App.__set_initial_position: Setting initial window position.")
         screen_width = self.__window.winfo_screenwidth()
@@ -220,7 +278,7 @@ class App():
     def __move_window(self, event: Event):
         """Moves the window on left click drag."""
         # If the class is not of a window class, don't trigger the moving event.
-        if not event.widget.winfo_class() == "Tk":
+        if not event.widget.winfo_class() == "Tk" and not isinstance(event.widget, BackgroundImage):
             return
         
         if self.__window.x and self.__window.y:
@@ -235,7 +293,7 @@ class App():
     def __snap_to_nearest_position(self, width, height):
         """Snaps the window to the closest position: `top_start, top_end, bottom_start, bottom_end`
         
-        args:
+        Args:
             width (int): The width of the window.
             height (int): The height of the window.
         """

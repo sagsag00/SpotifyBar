@@ -1,3 +1,17 @@
+# Copyright 2024 Sagi Tsafrir
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import requests
 import threading
 from logger import logger
@@ -37,8 +51,9 @@ class SpotifyClient():
     def play(self) -> bool:
         """Lets you start/resume playback.
 
-        Returns:
-            bool: Returns whether or not it succeeded.
+        returns
+        -------
+        bool : Returns whether or not it succeeded.
         """
         self._increment_request_count(self.play)
         
@@ -67,8 +82,9 @@ class SpotifyClient():
     def pause(self) -> bool:
         """Lets you pause playback.
 
-        Returns:
-            bool: Returns whether or not it succeeded.
+        returns
+        -------
+        bool : Returns whether or not it succeeded.
         """
         self._increment_request_count(self.pause)
         
@@ -104,7 +120,7 @@ class SpotifyClient():
             return True if data['is_playing'] else False
         return False
     
-    def is_shuffle_active(self) -> bool | None:
+    def is_shuffle_active(self) -> Union[bool, None]:
         """Checks whether or not the shuffle is active"""
         self._increment_request_count(self.is_shuffle_active)
         
@@ -124,10 +140,12 @@ class SpotifyClient():
             return True if data['shuffle_state'] else False
         return None
     
-    def get_repeat_mode(self) -> str | None:
+    def get_repeat_mode(self) -> Union[str, None]:
         """Gets the current active devices' repeat mode. 
 
-            returns: str | None : `off`, `context`, `track`. None if no active device found.
+            returns
+            -------
+            str | None : `off`, `context`, `track`. None if no active device found.
         """
         self._increment_request_count(self.get_repeat_mode)
         
@@ -156,8 +174,10 @@ class SpotifyClient():
     def skip_to_next(self) -> bool:
         """Lets you skip to the next song in queue.
 
-        Returns:
-            bool: Returns whether or not it succeeded.
+        returns
+        -------
+        bool : Returns whether or not it succeeded.
+            
         """
         self._increment_request_count(self.skip_to_next)
         
@@ -176,8 +196,9 @@ class SpotifyClient():
     def skip_to_previous(self) -> bool:
         """Lets you skip to the previous song played (queue exculded).
 
-        Returns:
-            bool: Returns whether or not it succeeded.
+        returns
+        --------
+        bool : Returns whether or not it succeeded.
         """
         self._increment_request_count(self.skip_to_previous)
         
@@ -195,13 +216,14 @@ class SpotifyClient():
     
     def set_repeat_mode(self, repeat: str) -> bool:
         """Sets the repeat mode for playback.
-
+        
         Args:
             repeat (str): The repeat mode to set. Must be one of
                         `REPEAT_OFF`, `REPEAT_CONTEXT` or `REPEAT_TRACK`.
 
-        Returns:
-            bool: Returns whether or not it succeeded.
+        returns
+        -------
+        bool : Returns whether or not it succeeded.
         """
         self._increment_request_count(self.set_repeat_mode)
         
@@ -227,8 +249,9 @@ class SpotifyClient():
         Args:
             shuffle (bool): The shuffle mode to set. True for shuffle on, False for shuffle off.
 
-        Returns:
-            bool: Returns whether or not it succeeded.
+        returns
+        -------
+        bool : Returns whether or not it succeeded.
         """
         self._increment_request_count(self.set_shuffle_mode)
 
@@ -245,11 +268,12 @@ class SpotifyClient():
         
         return response.ok
 
-    def get_playback_state_ms(self) -> int | None:
+    def get_playback_state_ms(self) -> Union[int, None]:
         """Gets the playback state in ms.
 
-        Returns:
-            int: Returns the playback state in miliseconds.
+        returns
+        -------
+        int : Returns the playback state in miliseconds.
         """
         self._increment_request_count(self.get_playback_state_ms)
         
@@ -270,11 +294,12 @@ class SpotifyClient():
         
         return response_json.get("progress_ms", 0)
     
-    def get_song_length_ms(self) -> int | None:
+    def get_song_length_ms(self) -> Union[int, None]:
         """Gets the total song length in milliseconds.
 
-        Returns:
-            int: Returns the song length in milliseconds, or None if unavailable.
+        returns
+        -------
+        int : Returns the song length in milliseconds, or None if unavailable.
         """
         self._increment_request_count(self.get_song_length_ms)
         
@@ -300,8 +325,10 @@ class SpotifyClient():
     
     def set_playback_state_ms(self, ms: int) -> bool:
         """Sets the playback state with miliseconds.
-            Returns:
-                bool: Returns whether or not the the playback was set successfully. True if it was, False otherwise.
+        
+        returns
+        -------
+        bool : Returns whether or not the the playback was set successfully. True if it was, False otherwise.
         """
         self._increment_request_count(self.set_playback_state_ms)
         
@@ -321,8 +348,9 @@ class SpotifyClient():
     def get_current_playing_track(self) -> Union[dict[str, Any], None]:
         """Gets the current playing tracks data.
 
-        Returns:
-            dict: The json with all of the tracks data.
+        returns
+        -------
+        dict : The json with all of the tracks data.
         """
         self._increment_request_count(self.get_current_playing_track)
         
@@ -347,8 +375,9 @@ class SpotifyClient():
     def get_song_title(self) -> str:
         """Gets the current playing song title.
 
-        Returns:
-            str: Returns the current songs name.
+        returns
+        -------
+        str : Returns the current songs name.
         """
         track = self.get_current_playing_track()
         
@@ -366,8 +395,9 @@ class SpotifyClient():
     def get_song_artist(self) -> str:
         """Gets the current playing song artist.
 
-        Returns:
-            str: Returns the current songs artist.
+        returns
+        -------
+        str : Returns the current songs artist.
         """    
         track = self.get_current_playing_track()
         
@@ -382,8 +412,9 @@ class SpotifyClient():
     def get_song_album(self) -> str:
         """Gets the current playing songs album.
 
-        Returns:
-            str: Returns the current songs album.
+        returns
+        -------
+        str : Returns the current songs album.
         """
         track = self.get_current_playing_track()
         
@@ -395,11 +426,12 @@ class SpotifyClient():
         
         return track["item"]["album"]["name"]
     
-    def get_volume(self) -> int | None:
+    def get_volume(self) -> Union[int, None]:
         """Gets the current volume level (0 to 100).
 
-        Returns:
-            int: Returns the current volume level in percentage, or None if unavailable.
+        returns
+        -------
+        int : Returns the current volume level in percentage, or None if unavailable.
         """
         self._increment_request_count(self.get_volume)
        
@@ -428,8 +460,9 @@ class SpotifyClient():
         Args:
             volume (int): The volume level to set. Must be between 0 and 100.
 
-        Returns:
-            bool: Returns whether or not the request succeeded.
+        returns
+        -------
+        bool : Returns whether or not the request succeeded.
         """
         if not (0 <= volume <= 100):
             raise ValueError("Volume must be between 0 and 100.")
@@ -467,8 +500,9 @@ class SpotifyClient():
             volume (int): The desired volume level (0-100).
             device_id (str): The ID of the target device.
 
-        Returns:
-            bool: Returns whether or not the request succeeded.
+        returns
+        -------
+        bool : Returns whether or not the request succeeded.
         """
         if not (0 <= volume <= 100):
             raise ValueError("Volume must be between 0 and 100.")
@@ -489,7 +523,7 @@ class SpotifyClient():
         return response.ok
 
     
-    def get_active_device_id(self) -> str | None:
+    def get_active_device_id(self) -> Union[str, None]:
         """Returns the active device ID if active, None otherwise."""
         self._increment_request_count(self.get_active_device_id)
         
@@ -520,8 +554,9 @@ class SpotifyClient():
     def transfer_playback(self, device_id: str) -> bool:
         """Starts the playback of the device id. 
         
-            Returns:
-                bool: Returns whether or not the request succeeded.
+        returns
+        -------
+        bool : Returns whether or not the request succeeded.
         """
         url = "https://api.spotify.com/v1/me/player"
         response = requests.put(
@@ -534,10 +569,11 @@ class SpotifyClient():
         )
         return response.ok
 
-    def get_cover_url(self) -> str | None:
+    def get_cover_url(self) -> Union[str, None]:
         """Gets the album image URL of the currently playing track.
 
-        Returns:
+        returns:
+        
             str: URL of the album image, or None if unavailable.
         """
         self._increment_request_count(self.get_cover_url)
@@ -557,8 +593,9 @@ class SpotifyClient():
     def get_queue(self) -> list:
         """Gets the current playback queue.
 
-        Returns:
-            list: A list of track information dictionaries in the queue, or None if unavailable.
+        returns
+        -------
+        list : A list of track information dictionaries in the queue, or None if unavailable.
         """
         self._increment_request_count(self.get_queue)
         
@@ -579,14 +616,15 @@ class SpotifyClient():
         # The 'queue' field contains the list of tracks in the playback queue.
         return queue_data.get("queue", [])
     
-    def get_recently_played(self, limit=20) -> list | None:
+    def get_recently_played(self, limit=20) -> Union[list, None]:
         """Gets a list of recently played tracks.
 
         Args:
             limit (int): Number of tracks to retrieve, with a max of 50.
 
-        Returns:
-            list: A list of dictionaries with metadata for each recently played track, or None if unavailable.
+        returns
+        -------
+        list : A list of dictionaries with metadata for each recently played track, or None if unavailable.
         """
         self._increment_request_count(self.get_recently_played)
         
@@ -604,11 +642,12 @@ class SpotifyClient():
         
         return response.json().get("items", [])
     
-    def get_artist_uri(self) -> str | None:
+    def get_artist_uri(self) -> Union[str, None]:
         """Gets the Spotify URI of the primary artist of the currently playing track.
 
-        Returns:
-            str: The Spotify URI of the primary artist, or None if unavailable.
+        returns
+        -------
+        str : The Spotify URI of the primary artist, or None if unavailable.
         """
         track = self.get_current_playing_track()
         
@@ -618,11 +657,12 @@ class SpotifyClient():
         artist_id = track["item"]["artists"][0]["id"]
         return f"spotify:artist:{artist_id}"
 
-    def get_album_uri(self) -> str | None:
+    def get_album_uri(self) -> Union[str, None]:
         """Gets the URI of the current playing song's album.
 
-        Returns:
-            str: The URI of the current song's album.
+        returns
+        -------
+        str : The URI of the current song's album.
         """
         track = self.get_current_playing_track()
         

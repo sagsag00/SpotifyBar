@@ -1,3 +1,17 @@
+# Copyright 2024 Sagi Tsafrir
+
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+
+#     http://www.apache.org/licenses/LICENSE-2.0
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 import views.buttons
 import views.label
 import views.scales
@@ -25,7 +39,13 @@ if __name__ == "__main__":
         logger.warning("main_thread: 'config.ini' file was not found. Creating a new file.")
         
         # Create default lines if the file does not exist
-        lines = ["program_title=\n", "opacity=\n", "background_color=\n", "position=\n", "padding=\n"]
+        lines = ["program_title=\n",
+                 "opacity=\n",
+                 "background_color=\n",
+                 "position=\n",
+                 "padding=\n",
+                 "background_mode=default\n"
+                 ]
         
         with open("config.ini", "x") as file:
             file.writelines(lines)
@@ -47,11 +67,18 @@ if __name__ == "__main__":
     padding: int = int(config_values.get("padding") or 10)
     opacity: float = float(config_values.get("opacity") or 1)
     background_color: str = config_values.get("background_color") or "lightgray"
-
+    background_mode: str = config_values.get("background_mode") or "default" 
+    
     app = App(program_title, "icon.ico", position=position, padding=padding, opacity=opacity, background_color=background_color)
     tray = SystemTray()
     
-    tray_process = threading.Thread(target=tray.run) 
+    if background_mode in ("background_only", "background_and_text"):
+        app.set_background_as_image()
+        if background_mode == "background_and_text":
+            app.set_text_as_image()
     
+    
+    tray_process = threading.Thread(target=tray.run) 
+
     tray_process.start()
     app.run()
