@@ -33,7 +33,7 @@ Options for the position: `top_start`, `top_end`, `bottom_start` and `bottom_end
 You can change the button resources if you'd like. Go to the `/resources/buttons` folder.
 Inside you can see each resource and change it as you like.
 
-For `background_mode` there are 3 modes: `default`, `background_only` and `background_and_text`.
+For `background_mode` there are 2 modes: `default` and `background_only`.
 
 The `default` mode will not chagne anything, with it you can change the `background_color`.
 The `background_only` mode will change the background to the current songs image with blur. Chainging `background_color` will do nothing.
