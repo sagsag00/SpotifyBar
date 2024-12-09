@@ -12,10 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .refresh import SpotifyAuth, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN
+from api.refresh import SpotifyAuth, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN
 import time 
 import subprocess
-from .spotify_client import SpotifyClient
+from api.spotify_client import SpotifyClient
 import threading
 import webbrowser
 from logger import logger

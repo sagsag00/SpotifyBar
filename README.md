@@ -22,6 +22,7 @@ You can customize some aspects of the app inside the config.ini file created in 
     background_color=
     position=
     padding=
+    background_mode=
 
 If the file is left empty, the default settings will be set.
 
@@ -36,4 +37,3 @@ For `background_mode` there are 3 modes: `default`, `background_only` and `backg
 
 The `default` mode will not chagne anything, with it you can change the `background_color`.
 The `background_only` mode will change the background to the current songs image with blur. Chainging `background_color` will do nothing.
-The `background_and_text` mode will do the same as `background_only` but it will also change the texts color to the albums main color.

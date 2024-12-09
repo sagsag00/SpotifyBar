@@ -385,7 +385,22 @@ class GuiManager():
             
         logger.debug("GuiManager.__load_song_image: Function has completed.")
             
-    
-    
+    def _resize_image_maintaining_aspect_ratio(self, image: PhotoImage, max_width: int, max_height: int) -> PhotoImage:
+        """Resize the image while maintaining its aspect ratio."""
+        logger.debug("GuiManager._resize_image_maintaining_aspect_ratio: Resizing the image.")
+        img_width, img_height = image.size
+        aspect_ratio = img_width / img_height
+        
+        if img_width > max_width or img_height > max_height:
+            if img_width / max_width > img_height / max_height:
+                new_width = max_width
+                new_height = int(max_width / aspect_ratio)
+            else:
+                new_height = max_height
+                new_width = int(max_height * aspect_ratio)
+            image = image.resize((new_width, new_height), Image.Resampling.LANCZOS)
+        
+        logger.debug("GuiManager._resize_image_maintaining_aspect_ratio: Function has completed.")
+        return image
     
     

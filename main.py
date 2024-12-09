@@ -72,10 +72,8 @@ if __name__ == "__main__":
     app = App(program_title, "icon.ico", position=position, padding=padding, opacity=opacity, background_color=background_color)
     tray = SystemTray()
     
-    if background_mode in ("background_only", "background_and_text"):
+    if background_mode == "background_only":
         app.set_background_as_image()
-        if background_mode == "background_and_text":
-            app.set_text_as_image()
     
     
     tray_process = threading.Thread(target=tray.run) 

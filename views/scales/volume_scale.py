@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from .scale import Scale
+from views.scales import Scale
 from logger import logger
 
 class VolumeScale(Scale):
