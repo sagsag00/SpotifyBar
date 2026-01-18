@@ -23,19 +23,29 @@ import requests
 from io import BytesIO
 import time
 from logger import logger
-from typing import Union
+from typing import Union, TypedDict, Unpack
+
+class ViewComponents(TypedDict, total=False):
+    exit_button: ExitButton
+    next_button: NextButton
+    previous_button: PreviousButton
+    pause_button: PauseButton
+    repeat_button: RepeatButton
+    shuffle_button: ShuffleButton
+    song_label: SongLabel
+    artist_label: SongLabel
+    album_label: SongLabel
+    time_label: TimeLabel
+    playback_scale: PlaybackScale
+    volume_scale: VolumeScale
+    song_pic: Label
 
 class GuiManager():
-    def __init__(self, master, **kwargs) -> None:
-        """Manages the given views.
-
-        Possible arguements:
-            exit_button, next_button, previous_button, pause_button, repeat_button, shuffle_buttln,
-            song_label, artist_label, album_label, time_label, playback_scale, volume_scale, song_pic
-        """
+    def __init__(self, master, **kwargs: Unpack[ViewComponents]) -> None:
+        """Manages the given views."""
         
         self.master = master
-        self.views = {}
+        self.views = kwargs
         self.spotify = Spotify()
         
         self.skip_count = 0 
@@ -48,87 +58,68 @@ class GuiManager():
         self._check_pause_thread_id = None
         self.current_track = None
         
-        allowed_keys = {
-            "exit_button", "next_button", "previous_button", "pause_button", "repeat_button",
-            "shuffle_button", "song_label", "artist_label", "album_label", "time_label",
-            "playback_scale", "volume_scale", "song_pic"
-        }
-
-        for key, value in kwargs.items():
-            if key in allowed_keys:
-                setattr(self, key, value)
-                self.views[key] = value
-            else:
-                logger.warning(f"GuiManager.__init__: '{key}' is not a recognized argument and will be ignored.")
+        for view in self.views:
+            setattr(self, view, self.views[view])
+        
         
     def load_all(self) -> None:
         """Load all of the given views."""
         logger.info("GuiManager.load_all: Loading all views...")
         
-        if hasattr(self, "playback_scale") and isinstance(self.playback_scale, PlaybackScale):
-            self.playback_scale.set_callback(self.on_playback_scale_next)
-            self.playback_scale.load()
-            logger.debug("GuiManager.load_all: Playback scale loaded.")
-
-        if hasattr(self, "volume_scale") and isinstance(self.volume_scale, VolumeScale):
-            self.volume_scale.load()
-            logger.debug("GuiManager.load_all: Volume scale loaded.")
-
-        if hasattr(self, "next_button") and isinstance(self.next_button, NextButton):
-            self.next_button.set_callback(self.on_next_button_click)
-            logger.debug("GuiManager.load_all: Next button loaded.")
-
-        if hasattr(self, "previous_button") and isinstance(self.previous_button, PreviousButton):
-            self.previous_button.set_callback(self.on_previous_button_click)
-            logger.debug("GuiManager.load_all: Previous button loaded.")
-
-        if hasattr(self, "pause_button") and isinstance(self.pause_button, PauseButton):
-            self.pause_button.set_callback(self.on_pause_button_click)
-            self.pause_button.load()
-            logger.debug("GuiManager.load_all: Pause button loaded.")
-            
-            if self.pause_button.is_active and hasattr(self, "playback_scale") and isinstance(self.playback_scale, PlaybackScale):
-                self.playback_scale.start()
-
-        if hasattr(self, "shuffle_button") and isinstance(self.shuffle_button, ShuffleButton):
-            self.shuffle_button.load()
-            logger.debug("GuiManager.load_all: Shuffle button loaded.")
-
-        if hasattr(self, "repeat_button") and isinstance(self.repeat_button, RepeatButton):
-            self.repeat_button.load()
-            logger.debug("GuiManager.load_all: Repeat button loaded.")
-
-        if hasattr(self, "song_label") and isinstance(self.song_label, SongLabel):
-            self.song_label.load(type=SONG)
-            logger.debug("GuiManager.load_all: Song label loaded.")
-            
-            if self.song_label.title == "Unknown":
-                volume = self.spotify.volume 
-                self.spotify.set_volume(5)
-                self.spotify.play()
-                self.spotify.pause()
-                self.spotify.set_volume(volume)
-                self.load_all()
-
-        if hasattr(self, "artist_label") and isinstance(self.artist_label, SongLabel):
-            self.artist_label.set_callback(self.on_button_click_artist)
-            self.artist_label.load(type=ARTIST)
-            logger.debug("GuiManager.load_all: Artist label loaded.")
-
-        if hasattr(self, "album_label") and isinstance(self.album_label, SongLabel):
-            self.album_label.set_callback(self.on_button_click_album)
-            self.__load_album_label()
-            logger.debug("GuiManager.load_all: Album label loaded.")
-
-        if hasattr(self, "song_pic") and isinstance(self.song_pic, Label):
-            self.__load_song_image()
-            logger.debug("GuiManager.load_all: Song picture loaded.")
-
-        logger.debug("GuiManager.load_all: Function has completed.")
+        components = [
+            ('playback_scale', PlaybackScale, lambda c: (
+                c.set_callback(self.on_playback_scale_next),
+                c.load()
+            )),
+            ('volume_scale', VolumeScale, lambda c: c.load()),
+            ('next_button', NextButton, lambda c: c.set_callback(self.on_next_button_click)),
+            ('previous_button', PreviousButton, lambda c: c.set_callback(self.on_previous_button_click)),
+            ('pause_button', PauseButton, lambda c: (
+                c.set_callback(self.on_pause_button_click),
+                c.load()
+            )),
+            ('shuffle_button', ShuffleButton, lambda c: c.load()),
+            ('repeat_button', RepeatButton, lambda c: c.load()),
+            ('song_label', SongLabel, lambda c: c.load(type=SONG)),
+            ('artist_label', SongLabel, lambda c: (
+                c.set_callback(self.on_button_click_artist),
+                c.load(type=ARTIST)
+            )),
+            ('album_label', SongLabel, lambda c: (
+                c.set_callback(self.on_button_click_album),
+                self.__load_album_label()
+            )),
+            ('song_pic', Label, lambda c: self.__load_song_image()),
+        ]
         
+        for attr_name, expected_type, setup_func in components:
+            if hasattr(self, attr_name):
+                component = getattr(self, attr_name)
+                if isinstance(component, expected_type):
+                    setup_func(component)
+                    logger.debug(f"GuiManager.load_all: Loaded {attr_name} view.")
+        
+        if hasattr(self, 'pause_button') and self.pause_button.is_active:
+            if hasattr(self, 'playback_scale'):
+                self.playback_scale.start()
+        
+        if hasattr(self, 'song_label') and self.song_label.title == "Unknown":
+            self._handle_unknown_song()
+
         if self._check_manager_thread_id is None:
             threading.Thread(target=self.__changes_check_manager).start()
             logger.debug("GuiManager.load_all: Started background thread.")
+            
+        logger.debug("GuiManager.load_all: Function has completed.")
+    
+    def _handle_unknown_song(self) -> None:
+        """Handle the case where song info is not yet available."""
+        volume = self.spotify.volume 
+        self.spotify.set_volume(5)
+        self.spotify.play()
+        self.spotify.pause()
+        self.spotify.set_volume(volume)
+        self.load_all()
                     
     def on_playback_scale_next(self):
         """Callback function executed when playback_scale calls stop_timer."""

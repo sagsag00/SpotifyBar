@@ -346,6 +346,7 @@ class App():
         
     @opacity.deleter
     def opacity(self) -> None:
+        #Redundant deleter, kept for completeness.
         del self.__opacity
         
     def run(self) -> None:

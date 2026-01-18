@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import views.buttons
-import views.label
-import views.scales
-import gui_manager
 from gui import App
 from api import Spotify
 from logger import logger
@@ -25,7 +21,6 @@ import threading
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
 
-#TODO Make it so that if the player is paused, the check for playback change thread will be destroyed.
 if __name__ == "__main__":
     spotify = Spotify()
     if not spotify.open_spotify_app():

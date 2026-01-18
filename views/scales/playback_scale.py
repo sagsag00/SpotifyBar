@@ -92,7 +92,6 @@ class PlaybackScale(Scale):
 
             # Check if we've reached the end time
             if self.curr_time >= self.end_time:
-                logger.critical("Hi")
                 self.load()
                 self.stop_timer()
                 return
