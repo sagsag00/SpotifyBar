@@ -70,7 +70,6 @@ if __name__ == "__main__":
     if background_mode == "background_only":
         app.set_background_as_image()
     
-
     tray_process = threading.Thread(target=tray.run) 
 
     tray_process.start()
