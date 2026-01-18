@@ -5,7 +5,7 @@ The app lets you have a tiny spotify bar at the borders of your screen:
 
 # Setup
 To setup the app, you need to go to [spotify api dashboard](https://developer.spotify.com/dashboard) and create an app.
-When creating the app, the only thing that is important is having the redirect uri be "http://localhost:5000/callback".
+When creating the app, the only thing that is important is having the redirect uri be "http://127.0.0.1:5000/callback".
 After you've created the app, go to the apps' settings and save the Client ID and Client secret in a .env file as follows:
 
     CLIENT_ID:{YOUR_CLIENT_ID}

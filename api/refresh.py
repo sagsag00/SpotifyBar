@@ -21,12 +21,17 @@ import webbrowser
 import dotenv
 import os
 from pathlib import Path
-from logger import logger
 from werkzeug.serving import run_simple
 import time
 import threading
 import signal
 import sys
+
+try:
+    from logger import logger
+except ImportError:
+    sys.path.append(str(Path(__file__).resolve().parents[1]))
+    from logger import logger
 
 dotenv.load_dotenv()
 app = Flask(__name__)
@@ -35,13 +40,12 @@ CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
 
-
 class SpotifyAuth:
     def __init__(self, client_id, client_secret):
         """Spotify authorization."""
         self.client_id = client_id
         self.client_secret = client_secret
-        self.redirect_uri = "http://localhost:5000/callback"  # The servers url.
+        self.redirect_uri = "http://127.0.0.1:5000/callback"  # The servers url.
     
 
     def get_authorization_url(self) -> str:
@@ -54,6 +58,7 @@ class SpotifyAuth:
         encoded_redirect_uri = urllib.parse.quote(self.redirect_uri)
 
         auth_url = f"https://accounts.spotify.com/authorize?client_id={self.client_id}&response_type=code&redirect_uri={encoded_redirect_uri}&scope={scope}"
+        print(auth_url)
         return auth_url
 
     def exchange_code_for_token(self, code: str) -> tuple[None, None] | tuple[str, str]:
@@ -132,8 +137,8 @@ class SpotifyAuth:
         if not REFRESH_TOKEN:
             auth_url = self.get_authorization_url()
             webbrowser.open(auth_url)
-            # app.run("localhost", 5000)
-            run_simple("localhost", 5000, app, threaded=True)
+            # app.run("127.0.0.1", 5000)
+            run_simple("127.0.0.1", 5000, app, threaded=True)
             
 def shutdown_server():
     """Shuts down the server"""
@@ -155,7 +160,6 @@ def callback():
     """The website that handles the redirect from the authorization url."""
     code = request.args.get('code')
     spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
-    
     if code:
         access_token, refresh_token = spotify_auth.exchange_code_for_token(code)
         logger.critical(f"{refresh_token=}", f"{REFRESH_TOKEN=}")
@@ -213,7 +217,7 @@ if __name__ == "__main__":
     if not REFRESH_TOKEN:
         auth_url = spotify_auth.get_authorization_url()
         webbrowser.open(auth_url)
-        app.run("localhost", 5000)
+        app.run("127.0.0.1", 5000)
     else:
         new_access_token = spotify_auth.refresh(REFRESH_TOKEN)
         if new_access_token:
