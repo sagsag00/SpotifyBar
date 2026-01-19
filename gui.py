@@ -344,11 +344,6 @@ class App():
         self.__window.attributes("-alpha", self.__opacity)
         logger.info(f"App.opacity: Opacity set to {self.__opacity:.2f}.")
         
-    @opacity.deleter
-    def opacity(self) -> None:
-        #Redundant deleter, kept for completeness.
-        del self.__opacity
-        
     def run(self) -> None:
         """Runs the main application loop."""
         

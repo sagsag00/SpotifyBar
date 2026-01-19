@@ -38,7 +38,6 @@ class CustomButton(Button):
         kwargs["height"] = kwargs.get("height", 1)
         
         self.tk_image = None
-        
         super().__init__(master, **kwargs)
         
         if image_path:
@@ -63,7 +62,6 @@ class CustomButton(Button):
         image = Image.open(image_path)
         image.thumbnail((15, 15))
         self.tk_image = ImageTk.PhotoImage(image)
-        
         return self.tk_image
         
     def on_click(self):

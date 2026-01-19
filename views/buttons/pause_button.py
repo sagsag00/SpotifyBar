@@ -21,13 +21,11 @@ import threading
 class PauseButton(CustomButton):
     def __init__(self, master = None, **kwargs) -> None: 
         super().__init__(master, "resources/buttons/pause.png", **kwargs)
-        
         self._is_active = True
         self.callback: Callable[[bool], None] = None
         
     def set_callback(self, callback: Callable[[bool], None]):
         self.callback = callback
-        
         logger.debug("PauseButton.set_callback function has completed.") 
         
     def on_click(self):
@@ -73,7 +71,6 @@ class PauseButton(CustomButton):
         if isinstance(new_val, bool) and new_val != self._is_active:
             self._is_active = not self._is_active  
             threading.Thread(target=self.change_image())
-            
             logger.debug("PauseButton.is_active.setter: Function has completed.")
         
         

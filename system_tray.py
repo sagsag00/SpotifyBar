@@ -106,8 +106,3 @@ class SystemTray:
         """Runs the system tray."""
         logger.info("SystemTray.run: The tray is running.")
         self.tray.run()
-        
-        
-    
-
-

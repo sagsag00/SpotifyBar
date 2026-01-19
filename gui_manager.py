@@ -58,8 +58,8 @@ class GuiManager():
         self._check_pause_thread_id = None
         self.current_track = None
         
-        for view in self.views:
-            setattr(self, view, self.views[view])
+        for name, value in self.views.items():
+            setattr(self, name, value)
         
         
     def load_all(self) -> None:
@@ -127,8 +127,6 @@ class GuiManager():
         
         self.finished_song = True
         if self.pause_button.is_active:
-            self.pause_button.is_active = True
-        
             self.skip_count = 1
             threading.Thread(target=self._load_next_track_details).start()
         
@@ -193,6 +191,7 @@ class GuiManager():
         logger.info("GuiManager.on_button_click_artist: Artist button clicked.")
         if not self.spotify.open_spotify_app():
             logger.error("GuiManager.on_button_click_artist: Spotify app could not open")
+            return
         
         self.spotify.open_uri_in_spotify(self.spotify.get_artist_uri())
     
@@ -203,6 +202,7 @@ class GuiManager():
         logger.info("Album button clicked.")
         if not self.spotify.open_spotify_app():
             logger.error("GuiManager.on_button_click_artist: Spotify app could not open")
+            return
         
         self.spotify.open_uri_in_spotify(self.spotify.get_album_uri())
         

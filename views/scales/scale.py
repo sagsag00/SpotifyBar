@@ -53,7 +53,7 @@ class Scale(Canvas):
             self.bind("<B1-Motion>", self._move_button_horizontal)
             
         self.spotify = Spotify()
-        logger.debug("Scale.__init__: Spotify instance created in volume control.")
+        logger.debug("Scale.__init__: Spotify instance created in scale control.")
              
     def _create_vertical(self):
         y_pos = self._y_position()
@@ -123,7 +123,3 @@ class Scale(Canvas):
         else:
             self._scale_value = round(new_val / 100 * self._width + 0.5)
             self._move_button_horizontal()
-    
-    @value.deleter
-    def value(self):
-        del self._scale_value

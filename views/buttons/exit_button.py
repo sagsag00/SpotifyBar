@@ -20,7 +20,6 @@ class ExitButton(CustomButton):
     def __init__(self, master = None, **kwargs) -> None:
         super().__init__(master, "resources/buttons/exit.png", **kwargs)
         self.master = master
-        
         self.bind("<Enter>", self.on_enter)
         self.bind("<Leave>", self.on_leave)
         

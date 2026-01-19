@@ -28,16 +28,19 @@ class SpotifyClient():
     _instance = None
     _lock = threading.Lock()
     _request_count = 0 
-    _request_count_lock = threading.Lock()  
-    
+    _request_count_lock = threading.Lock()
+
     def __new__(cls, *args, **kwargs):
-        del cls._instance
-        cls._instance = super(SpotifyClient, cls).__new__(cls)
-                
+        if cls._instance is None:
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super().__new__(cls)
         return cls._instance
     
-    def __init__(self, access_token: str) -> None:
-        self.access_token = access_token
+    def __init__(self, access_token: str):
+        if not hasattr(self, "_initialized"):
+            self.access_token = access_token
+            self._initialized = True
         
     def _increment_request_count(self, function):
         """Increment the request count and log every 100 requests."""
