@@ -33,7 +33,8 @@ except ImportError:
     sys.path.append(str(Path(__file__).resolve().parents[1]))
     from logger import logger
 
-dotenv.load_dotenv()
+env_path = Path(__file__).resolve().parents[1] 
+dotenv.load_dotenv(env_path)
 app = Flask(__name__)
 
 CLIENT_ID = os.getenv("CLIENT_ID")
@@ -212,6 +213,7 @@ def save_to_env(name: str, value: str) -> None:
         file.writelines(lines)
 
 if __name__ == "__main__":
+
     spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
     
     if not REFRESH_TOKEN:

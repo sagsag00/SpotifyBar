@@ -549,7 +549,7 @@ class SpotifyClient():
                     if not lines:
                         lines = []
                     if not "device_id" in lines:
-                        lines.append(f"device_id={device.get("id")}") 
+                        lines.append(f"device_id={device.get('id')}") 
                     file.writelines(lines)                   
                 return device.get("id")
         return None

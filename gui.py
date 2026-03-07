@@ -17,7 +17,7 @@ import ctypes
 from views.scales import PlaybackScale, VolumeScale
 from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton
 from views.label import SongLabel, BackgroundImage
-from PIL import Image, ImageTk, ImageFilter
+from PIL import Image, ImageTk, ImageFilter, ImageFile
 from gui_manager import GuiManager
 from logger import logger
 from screeninfo import get_monitors
@@ -25,9 +25,11 @@ from system_tray import SystemTray
 import requests
 from io import BytesIO
 from api import Spotify
+import numpy as np
+from sklearn.cluster import KMeans
 
 class App():
-    def __init__(self, title: str, icon_path: str, position = "top_start", padding = 10, opacity: float = 1, background_color = "lightgray") -> None:
+    def __init__(self, title: str, icon_path: str, position = "top_start", padding = 10, opacity: float = 1, background_color = "lightgray", background_mode = "default") -> None:
         logger.debug(f"App.__init__: Initializing application with {title=}, {icon_path=}, {position=}, {padding=}, {opacity=}, {background_color=}")
         self.__window: Tk = Tk()
         self.__title: str = title
@@ -36,6 +38,7 @@ class App():
         self.__position: str = position
         self.__padding: int = padding 
         self.__background_color: str = background_color
+        self.__background_mode: str = background_mode
         
         # Creating a system tray for later use.
         self.system_tray = SystemTray()
@@ -56,9 +59,14 @@ class App():
         
         window.geometry(f"{width}x{height}")
         try:
-            window.config(bg=self.__background_color)
+            if self.__background_mode == "song":
+                self.set_background_song()
+            else: 
+                window.config(bg=self.__background_color)
+
         except TclError:
             logger.error(f"App.__setup: Inavlid background color '{self.__background_color}'")
+
         try:
             window.attributes("-alpha", self.opacity)
         except TclError:
@@ -129,7 +137,79 @@ class App():
             logger.info("App.set_background_as_image: Background image set successfully.")
         except Exception as e:
             logger.error(f"App.set_background_as_image: Error setting background image: {e}")
-            
+
+    def set_background_song(self):
+        """Sets the background as the prominent color of the song"""
+        logger.debug(f"App.set_background_song: Loading and background image.")
+        try:
+            image_url = self.spotify.get_cover_url()
+            response = requests.get(image_url)
+            img_data = response.content
+            image = Image.open(BytesIO(img_data))
+
+            color = self._get_dominant_color(image)
+
+            self.__window.configure(background=color)
+            self._set_bg_recursive(self.__window, color)
+
+            text_color = self._get_inversed_color(color)
+            self._set_textcolor_recursive(self.__window, text_color)
+
+            logger.info("App.set_background_song: Background image set successfully.")
+        except Exception as e:
+            logger.error(f"App.set_background_song: Error setting background image: {e}")
+
+    def _get_inversed_color(self, color: str) -> str:
+        """Returns black if the provided color is bright otherwise returns white
+        """
+        if self._is_dark(color):
+            return "#FFFFFF"
+        return "#000000"
+    
+    def _set_textcolor_recursive(self, widget, color: str) -> None:
+        try:
+            widget.configure(fg=color)
+        except:
+            pass
+
+        for child in widget.winfo_children():
+            self._set_textcolor_recursive(child, color)
+
+    def _set_bg_recursive(self, widget, color: str) -> None:
+        try:
+            widget.configure(bg=color)
+        except:
+            pass
+
+        for child in widget.winfo_children():
+            self._set_bg_recursive(child, color)
+
+    def _is_dark(self, hex_color: str) -> bool:
+        hex_color = hex_color.lstrip("#")
+
+        r = int(hex_color[0:2], 16)
+        g = int(hex_color[2:4], 16)
+        b = int(hex_color[4:6], 16)
+
+        brightness = 0.299*r + 0.587*g + 0.114*b
+
+        return brightness < 128
+
+    def _get_dominant_color(self, image: ImageFile) -> str:
+        """Gets the prominent color of an image."""
+        image = image.convert("RGB")
+        image = image.resize((150, 150))
+
+        pixels = np.array(image).reshape(-1, 3)
+
+        kmeans = KMeans(n_clusters=4, random_state=0, n_init="auto")
+        kmeans.fit(pixels)
+
+        counts = np.bincount(kmeans.labels_)
+        dominant = kmeans.cluster_centers_[counts.argmax()]
+
+        return "#%02x%02x%02x" % tuple(map(int, dominant))
+
     def _resize_image(self, image: PhotoImage, fixed_width: int, fixed_height: int) -> PhotoImage:
         """Resize the image."""
         logger.debug("GuiManager._resize_image: Resizing the image without keeping the aspect ratio.")
@@ -202,7 +282,7 @@ class App():
         
         # Create GUIManager
         self.gui_manager = GuiManager(
-                window, playback_scale=self.playback_scale, volume_scale=self.volume_scale,
+                window, on_next_song=self.__on_next_song, playback_scale=self.playback_scale, volume_scale=self.volume_scale,
                 exit_button=self.exit_button, pause_button=self.pause_button, next_button=self.next_button,
                 repeat_button=self.repeat_button, previous_button=self.prev_button, shuffle_button=self.shuffle_button,
                 song_pic=self.__song_pic, song_label=self.song_name, artist_label=self.artist_name,
@@ -234,6 +314,10 @@ class App():
 
         self.__window.geometry(f"{width}x{height}+{x}+{y}")
         logger.debug("App.__set_initial_position: Initial position set to (%d, %d).", x, y)
+
+    def __on_next_song(self) -> None:
+        """Called on the next song"""
+        self.set_background_song()
 
     def __make_borderless(self) -> None:
         """Makes the window borderless."""

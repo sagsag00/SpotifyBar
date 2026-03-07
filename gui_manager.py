@@ -23,7 +23,7 @@ import requests
 from io import BytesIO
 import time
 from logger import logger
-from typing import Union, TypedDict, Unpack
+from typing import Union, TypedDict, Unpack, Callable
 
 class ViewComponents(TypedDict, total=False):
     exit_button: ExitButton
@@ -41,7 +41,7 @@ class ViewComponents(TypedDict, total=False):
     song_pic: Label
 
 class GuiManager():
-    def __init__(self, master, **kwargs: Unpack[ViewComponents]) -> None:
+    def __init__(self, master, on_next_song: Callable | None = None, **kwargs: Unpack[ViewComponents]) -> None:
         """Manages the given views."""
         
         self.master = master
@@ -57,6 +57,7 @@ class GuiManager():
         self._check_song_thread_id = None
         self._check_pause_thread_id = None
         self.current_track = None
+        self.on_next_song = on_next_song
         
         for name, value in self.views.items():
             setattr(self, name, value)
@@ -314,6 +315,7 @@ class GuiManager():
 
             self.playback_scale.reset()
             self.playback_scale.end_time.miliseconds = target_track["duration_ms"]
+            threading.Thread(target=self.on_next_song).start()
 
         logger.debug(f"GuiManager._load_next_track_details: Function has completed.")
 
@@ -326,6 +328,7 @@ class GuiManager():
         self.artist_label.load(type=ARTIST)
         self.__load_album_label()
         self.__load_song_image()
+        threading.Thread(target=self.on_next_song).start()
         
         logger.debug(f"GuiManager.__current_track_load_views: Function has completed.")
         

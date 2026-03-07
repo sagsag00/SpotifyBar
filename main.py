@@ -64,7 +64,7 @@ if __name__ == "__main__":
     background_color: str = config_values.get("background_color") or "lightgray"
     background_mode: str = config_values.get("background_mode") or "default" 
     
-    app = App(program_title, "icon.ico", position=position, padding=padding, opacity=opacity, background_color=background_color)
+    app = App(program_title, "icon.ico", position=position, padding=padding, opacity=opacity, background_color=background_color, background_mode=background_mode)
     tray = SystemTray()
     
     if background_mode == "background_only":
