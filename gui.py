@@ -25,11 +25,19 @@ from system_tray import SystemTray
 import requests
 from io import BytesIO
 from api import Spotify
-import numpy as np
-from sklearn.cluster import KMeans
+from collections import defaultdict
+import colorsys
 
 class App():
-    def __init__(self, title: str, icon_path: str, position = "top_start", padding = 10, opacity: float = 1, background_color = "lightgray", background_mode = "default") -> None:
+    def __init__(self,
+                 title: str,
+                 icon_path: str,
+                 position = "top_start",
+                 padding = 10,
+                 opacity: float = 1,
+                 background_color = "lightgray",
+                 background_mode = "default",
+                 soft_color_mode = True) -> None:
         logger.debug(f"App.__init__: Initializing application with {title=}, {icon_path=}, {position=}, {padding=}, {opacity=}, {background_color=}")
         self.__window: Tk = Tk()
         self.__title: str = title
@@ -39,6 +47,7 @@ class App():
         self.__padding: int = padding 
         self.__background_color: str = background_color
         self.__background_mode: str = background_mode
+        self.__soft_color_mode: bool = soft_color_mode
         
         # Creating a system tray for later use.
         self.system_tray = SystemTray()
@@ -199,16 +208,53 @@ class App():
         """Gets the prominent color of an image."""
         image = image.convert("RGB")
         image = image.resize((150, 150))
+        
+        counts = defaultdict(int)
+        
+        for r, g, b in image.getdata():
+            bucket = (r//16, g//16, b//16)
+            counts[bucket] += 1
+            
+        top = sorted(counts.items(), key=lambda x: x[1], reverse=True)[:5]
+        top = top[::-1]
+        
+        chosen_bucket = None
+        chosen_count = 0
+        
+        for bucket, count in top:
+            r, g, b = (x* 16 + 8 for x in bucket)
+            brightness = 0.299*r + 0.586*g + 0.114*b
+            
+            if brightness < 40 and count < chosen_count * 2.5:
+                continue
+            
+            chosen_bucket = bucket
+            chosen_count = count
+            
+        
+        if chosen_bucket is None:
+            chosen_bucket = top[0][0]
 
-        pixels = np.array(image).reshape(-1, 3)
+        r, g, b = (x * 16 + 8 for x in chosen_bucket)
+        color = (self._soften_color((r, g, b)) if self.__soft_color_mode else (r, g, b))
+        return "#%02x%02x%02x" % color
 
-        kmeans = KMeans(n_clusters=4, random_state=0, n_init="auto")
-        kmeans.fit(pixels)
-
-        counts = np.bincount(kmeans.labels_)
-        dominant = kmeans.cluster_centers_[counts.argmax()]
-
-        return "#%02x%02x%02x" % tuple(map(int, dominant))
+    def _soften_color(self, rgb: tuple[int, int, int]) -> tuple[int, int, int]:
+        r, g, b = rgb
+        r, g, b = r/255, g/255, b/255
+        
+        h, s, v = colorsys.rgb_to_hsv(r, g, b)
+        
+        # Reduce saturation
+        if s > 0.95:
+            s = 0.95
+        
+        # Reduce brightness
+        if v > 0.87:
+            v = 0.87
+            
+        r, g, b = colorsys.hsv_to_rgb(h, s, v)
+        return tuple([int(r*255), int(g*255), int(b*255)])
 
     def _resize_image(self, image: PhotoImage, fixed_width: int, fixed_height: int) -> PhotoImage:
         """Resize the image."""

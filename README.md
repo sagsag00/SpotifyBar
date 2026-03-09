@@ -8,9 +8,9 @@ To setup the app, you need to go to [spotify api dashboard](https://developer.sp
 When creating the app, the only thing that is important is having the redirect uri be "http://127.0.0.1:5000/callback".
 After you've created the app, go to the apps' settings and save the Client ID and Client secret in a .env file as follows:
 
-    CLIENT_ID:{YOUR_CLIENT_ID}
-    CLIENT_SECRET:{YOUR_CLIENT_SECRET}
-    REFRESH_TOKEN:{LEAVE_EMPTY}
+    CLIENT_ID={YOUR_CLIENT_ID}
+    CLIENT_SECRET={YOUR_CLIENT_SECRET}
+    REFRESH_TOKEN={LEAVE_EMPTY}
 
 Store the .env file inside the base folder of the app.
 
@@ -23,6 +23,7 @@ You can customize some aspects of the app inside the config.ini file created in 
     position=
     padding=
     background_mode=
+    soft_color_mode=
 
 If the file is left empty, the default settings will be set.
 

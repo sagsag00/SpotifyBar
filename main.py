@@ -17,11 +17,36 @@ from api import Spotify
 from logger import logger
 from system_tray import SystemTray
 import threading
+import requests
 
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
 
+VERSION = "0.2.1"
+
+def is_bigger_version(version: str, compared_version: str) -> bool:
+    """Checks if version is bigger or equals to compared_version"""
+
+    v1 = [int(x) for x in version.split(".")]
+    v2 = [int(x) for x in compared_version.split(".")]
+
+    return v1 >= v2
+
+def check_new_version() -> bool:
+    response = requests.get("https://github.com/sagsag00/SpotifyBar/releases/latest")
+    new_version = response.url.split("/")[-1].replace("v", "")
+    
+    return not is_bigger_version(VERSION, new_version)
+
+def download_new_version() -> None:
+    response = requests.get("https://github.com/sagsag00/SpotifyBar/releases/latest")
+    new_version = response.url
+
 if __name__ == "__main__":
+    if check_new_version():
+        download_new_version()
+        exit(0)
+    
     spotify = Spotify()
     if not spotify.open_spotify_app():
         logger.critical("main_thread: Couldn't open the spotify app.")
@@ -39,7 +64,8 @@ if __name__ == "__main__":
                  "background_color=\n",
                  "position=\n",
                  "padding=\n",
-                 "background_mode=default\n"
+                 "background_mode=default\n",
+                 "soft_color_mode=\n"
                  ]
         
         with open("config.ini", "x") as file:
@@ -63,8 +89,17 @@ if __name__ == "__main__":
     opacity: float = float(config_values.get("opacity") or 1)
     background_color: str = config_values.get("background_color") or "lightgray"
     background_mode: str = config_values.get("background_mode") or "default" 
+    soft_color_mode: str = bool(config_values.get("soft_color_mode")) or True
     
-    app = App(program_title, "icon.ico", position=position, padding=padding, opacity=opacity, background_color=background_color, background_mode=background_mode)
+    app = App(program_title,
+              "icon.ico",
+              position=position,
+              padding=padding,
+              opacity=opacity,
+              background_color=background_color,
+              background_mode=background_mode,
+              soft_color_mode=soft_color_mode
+              )
     tray = SystemTray()
     
     if background_mode == "background_only":
