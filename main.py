@@ -13,6 +13,8 @@
 # limitations under the License.
 import threading
 import requests
+from pathlib import Path
+import sys
 
 from gui import App, EnvInput
 from api import Spotify
@@ -23,7 +25,6 @@ from system_tray import SystemTray
 #TODO When starting the app, do the EnvInput, the submit doesn't work yet
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
-
 VERSION = "0.2.25"
 
 def is_bigger_version(version: str, compared_version: str) -> bool:
@@ -45,7 +46,31 @@ def download_new_version() -> None:
     new_version = response.url
 
 if __name__ == "__main__":
+    from api.refresh import load_credentials
+    
+    if getattr(sys, "frozen", False):
+        base_dir = Path(sys.executable).resolve().parent
+    else:
+        base_dir = Path(__file__).resolve().parent
+    
     logger.info("main_thread: Loading program")
+
+    env_file = base_dir / ".env"
+    
+    if not env_file.exists():
+        env_file.write_text("CLIENT_ID=\nCLIENT_SECRET=\nREFRESH_TOKEN=")
+        
+    creds = load_credentials(env_file)
+    CLIENT_ID = creds["CLIENT_ID"]
+    CLIENT_SECRET = creds["CLIENT_SECRET"]
+
+    while not (cred := load_credentials(env_file))["CLIENT_ID"] or not cred["CLIENT_SECRET"]:
+        window = EnvInput("Input Credentials", None)
+        window.run()
+
+    CLIENT_ID = cred["CLIENT_ID"]
+    CLIENT_SECRET = cred["CLIENT_SECRET"]
+    
     if check_new_version():
         download_new_version()
         exit(0)
@@ -61,7 +86,6 @@ if __name__ == "__main__":
     except FileNotFoundError:
         logger.warning("main_thread: 'config.ini' file was not found. Creating a new file.")
         
-        # Create default lines if the file does not exist
         lines = ["program_title=\n",
                  "opacity=\n",
                  "background_color=\n",

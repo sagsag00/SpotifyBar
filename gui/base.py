@@ -32,7 +32,7 @@ class Base():
 
         self._setup()
         
-    def _setup(self, geometry: tuple[int, int], func: Union[Callable, None], args: Union[tuple, None]) -> None:
+    def _setup(self, geometry: tuple[int, int], func: Union[Callable, None] = None, args: Union[tuple, None] = None) -> None:
         """Base setup: icon, title, background, borderless, rounded, topmost, bindings"""
         logger.debug("Base._setup: Starting base window setup.")
         window = self._window
@@ -78,10 +78,13 @@ class Base():
         
     def _make_borderless(self) -> None:
         logger.debug("Base._make_borderless: Making window borderless.")
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
+        
+        hwnd = ctypes.windll.user32.FindWindowW(None, self._title)
+        
         GWL_STYLE = -16
         WS_VISIBLE = 0x10000000
         WS_POPUP = 0x80000000
+        
         result = ctypes.windll.user32.SetWindowLongW(hwnd, GWL_STYLE, WS_VISIBLE | WS_POPUP)
         if result == 0:
             logger.error("Base._make_borderless: SetWindowLongW failed.")
@@ -92,7 +95,7 @@ class Base():
         logger.debug("Base._set_rounded_corners: Setting rounded corners.")
         DWMWA_WINDOW_CORNER_PREFERENCE = 33
         DWMNCRP_ROUND = 2
-        hwnd = ctypes.windll.user32.GetForegroundWindow()
+        hwnd = ctypes.windll.user32.FindWindowW(None, self._title)
         result = ctypes.windll.dwmapi.DwmSetWindowAttribute(
             hwnd,
             DWMWA_WINDOW_CORNER_PREFERENCE,

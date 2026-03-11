@@ -15,9 +15,9 @@
 import sys
 from pathlib import Path
 from tkinter import Label, Frame, Entry
+import webbrowser
 
 from gui.base import Base
-
 
 class EnvInput(Base):
     def __init__(self,
@@ -26,11 +26,10 @@ class EnvInput(Base):
                  opacity: float = 1,
                  background_color: str = "lightgray") -> None:
         super().__init__(title, icon_path, opacity, background_color)
+       
 
     def _setup(self) -> None:
-        super()._setup()
-        width, height = 500, 200
-        self._window.geometry(f"{width}x{height}")
+        super()._setup(geometry=(500, 200))
         self.__load_widgets()
 
     def __load_widgets(self) -> None:
@@ -109,6 +108,8 @@ class EnvInput(Base):
         )
         submit_button.pack(side="right")
         submit_button.bind("<Button-1>", lambda e: self.__on_submit())
+        
+        webbrowser.open("https://developer.spotify.com/dashboard")
 
     def __on_submit(self) -> None:
         client_id = self.client_id_entry.get().strip()
@@ -137,4 +138,4 @@ class EnvInput(Base):
 
         env_file.write_text("\n".join(new_lines) + "\n")
 
-        self._window.destroy()
+        self._window.after(0, self._window.destroy)

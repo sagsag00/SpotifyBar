@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from api.refresh import SpotifyAuth, CLIENT_ID, CLIENT_SECRET, REFRESH_TOKEN
+from api.refresh import SpotifyAuth, load_credentials, env_file
 import time 
 import subprocess
 from api.spotify_client import SpotifyClient
@@ -46,6 +46,10 @@ class Spotify():
         
     def refresh(self) -> str:
         """Refreshes the clients' access token."""
+        creds = load_credentials(env_file)
+        CLIENT_ID = creds["CLIENT_ID"]
+        CLIENT_SECRET = creds["CLIENT_SECRET"]
+        REFRESH_TOKEN = creds["REFRESH_TOKEN"]
         spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
         spotify_auth.run()
         return spotify_auth.refresh(REFRESH_TOKEN)

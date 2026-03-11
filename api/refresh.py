@@ -27,30 +27,28 @@ import threading
 import signal
 import sys
 
-try:
-    from logger import logger
-except ImportError:
-    sys.path.append(str(Path(__file__).resolve().parents[1]))
-    from logger import logger
-    
 if getattr(sys, "frozen", False):
     base_dir = Path(sys.executable).resolve().parent
 else:
     base_dir = Path(__file__).resolve().parent.parent
+sys.path.append(str(base_dir))  
+from logger import logger
 
-env_file = base_dir / ".env"
-
-if not env_file.exists():
-    env_file.write_text("CLIENT_ID=\nCLIENT_SECRET=\nREFRESH_TOKEN=")
-    
-    
-dotenv.load_dotenv(env_file)
-
+env_file = base_dir / ".env"    
 app = Flask(__name__)
 
-CLIENT_ID = os.getenv("CLIENT_ID")
-CLIENT_SECRET = os.getenv("CLIENT_SECRET")
-REFRESH_TOKEN = os.getenv("REFRESH_TOKEN")
+def load_credentials(env_path: Path):
+    """Load credentials from the given .env file."""
+    dotenv.load_dotenv(env_path, override=True)
+    client_id = os.getenv("CLIENT_ID")
+    client_secret = os.getenv("CLIENT_SECRET")
+    refresh_token = os.getenv("REFRESH_TOKEN")
+
+    return {
+        "CLIENT_ID": client_id,
+        "CLIENT_SECRET": client_secret,
+        "REFRESH_TOKEN": refresh_token
+    }
 
 class SpotifyAuth:
     def __init__(self, client_id, client_secret):
@@ -70,7 +68,6 @@ class SpotifyAuth:
         encoded_redirect_uri = urllib.parse.quote(self.redirect_uri)
 
         auth_url = f"https://accounts.spotify.com/authorize?client_id={self.client_id}&response_type=code&redirect_uri={encoded_redirect_uri}&scope={scope}"
-        print(auth_url)
         return auth_url
 
     def exchange_code_for_token(self, code: str) -> tuple[None, None] | tuple[str, str]:
@@ -146,7 +143,8 @@ class SpotifyAuth:
             logger.error(f"SpotifyAuth.handle_response: Response not in JSON format: {response.text}")
 
     def run(self) -> None:  
-        if not REFRESH_TOKEN:
+        creds = load_credentials(env_file)
+        if not creds["REFRESH_TOKEN"]:
             auth_url = self.get_authorization_url()
             webbrowser.open(auth_url)
             # app.run("127.0.0.1", 5000)
@@ -171,6 +169,10 @@ def shutdown():
 def callback():
     """The website that handles the redirect from the authorization url."""
     code = request.args.get('code')
+    creds = load_credentials(env_file)
+    CLIENT_ID = creds["CLIENT_ID"]
+    CLIENT_SECRET = creds["CLIENT_SECRET"]
+    REFRESH_TOKEN = creds["REFRESH_TOKEN"]
     spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
     if code:
         access_token, refresh_token = spotify_auth.exchange_code_for_token(code)
@@ -224,7 +226,10 @@ def save_to_env(name: str, value: str) -> None:
         file.writelines(lines)
 
 if __name__ == "__main__":
-
+    creds = load_credentials(env_file)
+    CLIENT_ID = creds["CLIENT_ID"]
+    CLIENT_SECRET = creds["CLIENT_SECRET"]
+    REFRESH_TOKEN = creds["REFRESH_TOKEN"]
     spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
     
     if not REFRESH_TOKEN:
