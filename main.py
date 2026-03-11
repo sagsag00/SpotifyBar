@@ -11,14 +11,16 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-from gui import App
-from api import Spotify
-from logger import logger
-from system_tray import SystemTray
 import threading
 import requests
 
+from gui import App, EnvInput
+from api import Spotify
+from logger import logger
+from system_tray import SystemTray
+
+#TODO When pressing next the background doesn't chagne, and even after a while, it won't refresh
+#TODO When starting the app, do the EnvInput, the submit doesn't work yet
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
 
@@ -43,13 +45,14 @@ def download_new_version() -> None:
     new_version = response.url
 
 if __name__ == "__main__":
+    logger.info("main_thread: Loading program")
     if check_new_version():
         download_new_version()
         exit(0)
     
     spotify = Spotify()
-    if not spotify.open_spotify_app():
-        logger.critical("main_thread: Couldn't open the spotify app.")
+    # if not spotify.open_spotify_app():
+    #     logger.critical("main_thread: Couldn't open the spotify app.")
     
     try:
         with open("config.ini", "r") as file:

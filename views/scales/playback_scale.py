@@ -29,8 +29,8 @@ class PlaybackScale(Scale):
         
         custom_font = font.Font(family="David", size=8, weight="bold")
         
-        self.curr_time = TimeLabel(master, text="0:00", foreground="gray", bg=master.cget("bg"), font=custom_font)
-        self.end_time = TimeLabel(master, text="99:99", foreground="gray", bg=master.cget("bg"), font=custom_font)
+        self.curr_time = TimeLabel(master, text="0:00", foreground="gray", bg=master.cget("bg"), font=custom_font, highlightthickness=0, bd=0)
+        self.end_time = TimeLabel(master, text="99:99", foreground="gray", bg=master.cget("bg"), font=custom_font, highlightthickness=0, bd=0)
         
         self.bind("<B1-Motion>", self._move_button_horizontal)
         self.bind("<ButtonRelease-1>", self._on_button_release)
@@ -48,9 +48,9 @@ class PlaybackScale(Scale):
         scale_y = self.winfo_y()
         scale_width = self.winfo_width()
         
-        self.curr_time.place(x=scale_x - 15, y=scale_y + 8, anchor="center") 
-        self.end_time.place(x=scale_x + scale_width + 15, y=scale_y + 8, anchor="center")
-        
+        self.curr_time.place(x=scale_x - 20, y=scale_y + 8, anchor="center") 
+        self.end_time.place(x=scale_x + scale_width + 5, y=scale_y + 8, anchor="center")
+
         logger.debug(f"PlaybackScale.place: PlaybackScale placed at x: {scale_x}, y: {scale_y}, width: {scale_width}")
         
     def set_callback(self, callback: Callable) -> None:

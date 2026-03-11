@@ -32,9 +32,20 @@ try:
 except ImportError:
     sys.path.append(str(Path(__file__).resolve().parents[1]))
     from logger import logger
+    
+if getattr(sys, "frozen", False):
+    base_dir = Path(sys.executable).resolve().parent
+else:
+    base_dir = Path(__file__).resolve().parent.parent
 
-env_path = Path(__file__).resolve().parents[1] 
-dotenv.load_dotenv(env_path)
+env_file = base_dir / ".env"
+
+if not env_file.exists():
+    env_file.write_text("CLIENT_ID=\nCLIENT_SECRET=\nREFRESH_TOKEN=")
+    
+    
+dotenv.load_dotenv(env_file)
+
 app = Flask(__name__)
 
 CLIENT_ID = os.getenv("CLIENT_ID")

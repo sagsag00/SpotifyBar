@@ -12,18 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from views.scales import PlaybackScale, VolumeScale
-from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton
-from views.label import SongLabel, TimeLabel, SONG, ARTIST, ALBUM
 import threading
-from api import Spotify
 from tkinter import Label, PhotoImage
 from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 import time
-from logger import logger
 from typing import Union, TypedDict, Unpack, Callable
+
+from api import Spotify
+from logger import logger
+from views.scales import PlaybackScale, VolumeScale
+from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton
+from views.label import SongLabel, TimeLabel, SONG, ARTIST, ALBUM
 
 class ViewComponents(TypedDict, total=False):
     exit_button: ExitButton
@@ -299,8 +300,7 @@ class GuiManager():
         self.skipping = False
         logger.debug(f"GuiManager._skip_to_next: Total skips: {self.skip_count}")
         logger.debug(f"GuiManager._skip_to_next: Function has completed.")
-
-        
+ 
     def _load_next_track_details(self):
         """Loads the next track in queue details."""
         logger.info("GuiManager._load_next_track_details: Loading next track details.")
@@ -315,7 +315,8 @@ class GuiManager():
 
             self.playback_scale.reset()
             self.playback_scale.end_time.miliseconds = target_track["duration_ms"]
-            threading.Thread(target=self.on_next_song).start()
+            time.sleep(0.5)
+            self.on_next_song()
 
         logger.debug(f"GuiManager._load_next_track_details: Function has completed.")
 
@@ -328,7 +329,7 @@ class GuiManager():
         self.artist_label.load(type=ARTIST)
         self.__load_album_label()
         self.__load_song_image()
-        threading.Thread(target=self.on_next_song).start()
+        self.on_next_song()
         
         logger.debug(f"GuiManager.__current_track_load_views: Function has completed.")
         

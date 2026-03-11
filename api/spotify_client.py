@@ -16,6 +16,7 @@ import requests
 import threading
 from logger import logger
 from typing import Any, Union
+import os
 
 REPEAT_OFF = "off"
 REPEAT_CONTEXT = "context"
@@ -63,12 +64,20 @@ class SpotifyClient():
         active_device_id = self.get_active_device_id()
         if not active_device_id:
             logger.warning("spotify_client.play: No available device found.")
-            with open("api/info.ini", "r") as file:
-                lines = file.readlines()
+            lines = []
+            try:
+                with open("api/info.ini", "r") as file:
+                    lines = file.readlines()
+            except FileNotFoundError:
+                with open("api/info.ini", "w") as file:
+                    file.write(f"device_id={self.get_active_device_id()}")
             for line in lines:
                 if "device_id" not in line:
                     continue
                 device_id = line.split("=")[1]
+                if device_id is None:
+                   self.get_active_device_id()
+                   break
                 self.transfer_playback(device_id)
                 break
 
@@ -474,12 +483,20 @@ class SpotifyClient():
         active_device_id = self.get_active_device_id()
         if not active_device_id:
             logger.warning("spotify_client.set_volume: No available device found.")
-            with open("api/info.ini", "r") as file:
-                lines = file.readlines()
+            lines = []
+            try:
+                with open("api/info.ini", "r") as file:
+                    lines = file.readlines()
+            except FileNotFoundError:
+                with open("api/info.ini", "w") as file:
+                    file.write(f"device_id={self.get_active_device_id()}")
             for line in lines:
                 if "device_id" not in line:
                     continue
                 device_id = line.split("=")[1]
+                if device_id is None:
+                   self.get_active_device_id()
+                   break
                 self.transfer_volume(volume, device_id)
                 break
         
@@ -544,14 +561,29 @@ class SpotifyClient():
         devices = response.json().get("devices", [])
         for device in devices:
             if device.get("is_active"):
-                with open("api/info.ini", "w+") as file:
-                    lines = file.readlines()
-                    if not lines:
-                        lines = []
-                    if not "device_id" in lines:
-                        lines.append(f"device_id={device.get('id')}") 
-                    file.writelines(lines)                   
-                return device.get("id")
+                device_id = device.get("id")
+                
+                os.makedirs("api", exist_ok=True)
+                ini_file = "api/info.ini"
+                lines = []
+                
+                if os.path.exists(ini_file):
+                    with open(ini_file, "r") as f:
+                        lines = f.readlines()
+                
+                found = False
+                for i, line in enumerate(lines):
+                    if line.strip().startswith("device_id="):
+                        lines[i] = f"device_id={device_id}\n"    
+                        found = True
+                        break
+                    if not found:
+                        lines.append(f"device_id={device_id}\n")
+                    
+                    with open(ini_file, "w") as f:
+                        f.writelines(lines)
+                        
+                    return device_id
         return None
 
     def transfer_playback(self, device_id: str) -> bool:

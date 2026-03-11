@@ -17,8 +17,9 @@ import signal
 from pystray import Icon, Menu, MenuItem
 from PIL import Image, ImageDraw
 from logger import logger
-from gui_manager import GuiManager
 import threading
+
+from gui import GuiManager
 
 class SystemTray:
     _instance = None
@@ -50,7 +51,7 @@ class SystemTray:
         self.tray.title = "Spotify Bar"
         
         # Initializing the gui manager as a class member, when created in the `gui.py` code, it will be initialized here.
-        # See gui.py: App.__create_buttons method for more info.
+        # See gui.py: App._create_buttons method for more info.
         self.gui_manager: GuiManager = None
 
     def play_pause(self) -> None:
