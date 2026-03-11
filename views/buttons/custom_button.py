@@ -40,7 +40,8 @@ class CustomButton(Button):
         self.tk_image = None
         super().__init__(master, **kwargs)
         
-        if image_path:
+        if image_path is not None:
+            self.image_path = image_path
             self.tk_image = self.add_image(image_path)
             self.config(image=self.tk_image, width=24, height=20)
         
@@ -61,8 +62,7 @@ class CustomButton(Button):
         """Adds an image to the button"""
         image = Image.open(image_path)
         image.thumbnail((15, 15))
-        self.tk_image = ImageTk.PhotoImage(image)
-        return self.tk_image
+        return ImageTk.PhotoImage(image)
         
     def on_click(self):
         """On click function. Has to implement on each button"""

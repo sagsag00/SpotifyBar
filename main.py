@@ -24,7 +24,7 @@ from system_tray import SystemTray
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
 
-VERSION = "0.2.1"
+VERSION = "0.2.2"
 
 def is_bigger_version(version: str, compared_version: str) -> bool:
     """Checks if version is bigger or equals to compared_version"""

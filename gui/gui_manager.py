@@ -311,12 +311,13 @@ class GuiManager():
             self.song_label.title = target_track["name"]
             self.artist_label.title = target_track["artists"][0]["name"]
             self.__load_album_label(title=target_track["album"]["name"])
-            self.__load_song_image(target_track["album"]["images"][0]["url"])
+            
+            image_url = target_track["album"]["images"][0]["url"]
+            self.__load_song_image(image_url)
 
             self.playback_scale.reset()
             self.playback_scale.end_time.miliseconds = target_track["duration_ms"]
-            time.sleep(0.5)
-            self.on_next_song()
+            self.on_next_song(image_url)
 
         logger.debug(f"GuiManager._load_next_track_details: Function has completed.")
 

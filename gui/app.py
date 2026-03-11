@@ -14,20 +14,21 @@
 
 from tkinter import Tk, Event, Label, TclError, PhotoImage, Frame, Button
 import ctypes
-from PIL import Image, ImageTk, ImageFilter, ImageFile
+from PIL import Image, ImageTk, ImageFilter, ImageFile, ImageOps, ImageColor
 from screeninfo import get_monitors
 from system_tray import SystemTray
 import requests
 from io import BytesIO
 from collections import defaultdict
 import colorsys
+from threading import Thread
 
 from api import Spotify
 from logger import logger
 from gui.gui_manager import GuiManager
 from gui.base import Base
 from views.scales import PlaybackScale, VolumeScale
-from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton
+from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton, CustomButton
 from views.label import SongLabel, BackgroundImage
 
 class App(Base):
@@ -57,6 +58,8 @@ class App(Base):
         # if subclass attributes aren't set. The attribute check below handles this safely
         width, height = 370, 170
         super()._setup(geometry=(width, height), func=self._create_buttons, args=(self._window,))
+        self._window.withdraw()
+        self.__set_initial_position(width, height)
         
         try:
             if self.__background_mode == "song":
@@ -173,18 +176,23 @@ class App(Base):
         except Exception as e:
             logger.error(f"App.set_background_as_image: {e}")
 
-    def set_background_song(self):
+    def set_background_song(self, image_url: str | None = None):
         """Sets the background as the prominent color of the song"""
         logger.debug(f"App.set_background_song: Loading and background image.")
         try:
-            image_url = self.spotify.get_cover_url()
+            if image_url is None:
+                image_url = self.spotify.get_cover_url()
             response = requests.get(image_url)
             image = Image.open(BytesIO(response.content))
 
             color = self._get_dominant_color(image)
             self._window.configure(background=color)
             self._set_bg_recursive(self._window, color)
-            self._set_textcolor_recursive(self._window,  self._get_inversed_color(color))
+            
+            inversed_color = self._get_inversed_color(color)
+            self._set_textcolor_recursive(self._window, inversed_color)
+            self._set_buttons_color(self._window, inversed_color)
+            
             self._window.update_idletasks()
             logger.info("App.set_background_song: Done.")
         except Exception as e:
@@ -192,6 +200,34 @@ class App(Base):
 
     def _get_inversed_color(self, color: str) -> str:
         return "#FFFFFF" if self._is_dark(color) else "#000000"
+    
+    def _set_buttons_color(self, widget, inversed_color: str) -> None:
+        inversed = ImageColor.getrgb(inversed_color)
+        dim = tuple(int(c * 0.6) for c in inversed)
+        
+        for child in widget.winfo_children():
+            if isinstance(child, CustomButton) and child.image_path is not None:
+                image = Image.open(child.image_path).convert("RGBA")
+                
+                gray = ImageOps.grayscale(image)
+                result = Image.new("RGBA", image.size)
+                
+                pixels = []
+                for g, a in zip(gray.getdata(), image.getchannel("A").getdata()):
+                    t = g / 255
+                    r = int(dim[0] * (1 - t) + inversed[0] * t)
+                    g_ = int(dim[1] * (1 - t) + inversed[1] * t)
+                    b = int(dim[2] * (1 - t) + inversed[2] * t)
+                    
+                    pixels.append((r, g_, b, a))
+                    
+                result.putdata(pixels)
+                result.thumbnail((15, 15))
+                
+                child.tk_image = ImageTk.PhotoImage(result)
+                child.config(image=child.tk_image)
+            else:
+                self._set_buttons_color(child, inversed_color)
     
     def _set_textcolor_recursive(self, widget, color: str) -> None:
         try:
@@ -323,10 +359,10 @@ class App(Base):
 
         logger.debug("App._create_buttons: Done.")
 
-    def _on_next_song(self) -> None:
+    def _on_next_song(self, image_url: str | None = None) -> None:
         """Called on the next song"""
         if self.__background_mode == "song":
-            self.set_background_song()
+            self.set_background_song(image_url)
 
 
     
