@@ -54,7 +54,11 @@ class Scale(Canvas):
             
         self.spotify = Spotify()
         logger.debug("Scale.__init__: Spotify instance created in scale control.")
-             
+           
+    def update_colors(self, line, line_color: str, button_color: str) -> None:
+        self.itemconfig(line, fill=line_color)
+        self.itemconfig(self.button, fill=button_color, outline=button_color)  
+      
     def _create_vertical(self):
         y_pos = self._y_position()
         self._scale_line_vertical = self.create_line(7.5, 0, 7.5, self._height, fill="gray", width=3)

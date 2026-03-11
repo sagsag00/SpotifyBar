@@ -26,7 +26,7 @@ from api import Spotify
 from logger import logger
 from gui.gui_manager import GuiManager
 from gui.base import Base
-from views.scales import PlaybackScale, VolumeScale
+from views.scales import PlaybackScale, VolumeScale, Scale
 from views.buttons import ExitButton, NextButton, PreviousButton, PauseButton, RepeatButton, ShuffleButton, CustomButton
 from views.label import SongLabel, BackgroundImage
 
@@ -198,26 +198,32 @@ class App(Base):
             logger.error(f"App.set_background_song: Error setting background image: {e}")
 
     def _get_inversed_color(self, color: str) -> str:
-        return "#FFFFFF" if self._is_dark(color) else "#000000"
+        return "#FFFFFF" if self._is_dark(color) else "#696B6B"
         
     def apply_theme(self, theme_color: str) -> None:
         """Pre-process all button images for the current theme, save to a temp dir."""
         self._recolor_image_folder(src="resources/buttons", dst="resources/buttons_themed", color=theme_color)
-        self.__apply_theme(self._window) 
+        self.__apply_theme(self._window, theme_color) 
 
-    def __apply_theme(self, widget) -> None:
+    def __apply_theme(self, widget, color: str) -> None:
         if not widget:
             return
         
         for child in widget.winfo_children():
             if isinstance(child, CustomButton) and child.image_path is not None:
                 child.refresh_image()
+            elif isinstance(child, Scale):
+                if child.is_vertical:
+                    line = child._scale_line_vertical
+                else:
+                    line = child._scale_line_horizontal
+                child.update_colors(line, color, color)
             else:
-                self.__apply_theme(child)
+                self.__apply_theme(child, color)
 
     def _recolor_image_folder(self, src: str, dst: str, color: str) -> None:
         color = ImageColor.getrgb(color)
-        dim = tuple(int(c * 0.6) for c in color)
+        dim = tuple(int(c * 0.8) for c in color)
         os.makedirs(dst, exist_ok=True)
         
         for fname in os.listdir(src):
