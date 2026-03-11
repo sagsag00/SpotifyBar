@@ -29,9 +29,10 @@ class ShuffleButton(CustomButton):
             self.spotify.set_shuffle_mode("on")
         
         self.is_active = not self.is_active  
-        image_path = "resources/buttons/shuffle_on.png" if self.is_active else "resources/buttons/shuffle_off.png"
-        self.tk_image = self.add_image(image_path)  
+        self.image_path = "resources/buttons/shuffle_on.png" if self.is_active else "resources/buttons/shuffle_off.png"
+        self.tk_image = self.add_image(self.image_path)  
         self.config(image=self.tk_image)
+        self.refresh_image()
         
         logger.debug("ShuffleButton.on_click: Function has completed.")  
         
@@ -40,8 +41,9 @@ class ShuffleButton(CustomButton):
         if is_active is None:
             return
         self.is_active = is_active  
-        image_path = "resources/buttons/shuffle_on.png" if self.is_active else "resources/buttons/shuffle_off.png"
-        self.tk_image = self.add_image(image_path)  
+        self.image_path = "resources/buttons/shuffle_on.png" if self.is_active else "resources/buttons/shuffle_off.png"
+        self.tk_image = self.add_image(self.image_path)  
         self.config(image=self.tk_image) 
+        self.refresh_image()
         
         logger.debug("ShuffleButton.load: Function has completed.")  

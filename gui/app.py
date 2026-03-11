@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from tkinter import Tk, Event, Label, TclError, PhotoImage, Frame, Button
-import ctypes
+import os
 from PIL import Image, ImageTk, ImageFilter, ImageFile, ImageOps, ImageColor
 from screeninfo import get_monitors
 from system_tray import SystemTray
@@ -21,7 +21,6 @@ import requests
 from io import BytesIO
 from collections import defaultdict
 import colorsys
-from threading import Thread
 
 from api import Spotify
 from logger import logger
@@ -191,7 +190,7 @@ class App(Base):
             
             inversed_color = self._get_inversed_color(color)
             self._set_textcolor_recursive(self._window, inversed_color)
-            self._set_buttons_color(self._window, inversed_color)
+            self.apply_theme(inversed_color)
             
             self._window.update_idletasks()
             logger.info("App.set_background_song: Done.")
@@ -200,34 +199,51 @@ class App(Base):
 
     def _get_inversed_color(self, color: str) -> str:
         return "#FFFFFF" if self._is_dark(color) else "#000000"
-    
-    def _set_buttons_color(self, widget, inversed_color: str) -> None:
-        inversed = ImageColor.getrgb(inversed_color)
-        dim = tuple(int(c * 0.6) for c in inversed)
+        
+    def apply_theme(self, theme_color: str) -> None:
+        """Pre-process all button images for the current theme, save to a temp dir."""
+        self._recolor_image_folder(src="resources/buttons", dst="resources/buttons_themed", color=theme_color)
+        self.__apply_theme(self._window) 
+
+    def __apply_theme(self, widget) -> None:
+        if not widget:
+            return
         
         for child in widget.winfo_children():
             if isinstance(child, CustomButton) and child.image_path is not None:
-                image = Image.open(child.image_path).convert("RGBA")
-                
-                gray = ImageOps.grayscale(image)
-                result = Image.new("RGBA", image.size)
-                
-                pixels = []
-                for g, a in zip(gray.getdata(), image.getchannel("A").getdata()):
-                    t = g / 255
-                    r = int(dim[0] * (1 - t) + inversed[0] * t)
-                    g_ = int(dim[1] * (1 - t) + inversed[1] * t)
-                    b = int(dim[2] * (1 - t) + inversed[2] * t)
-                    
-                    pixels.append((r, g_, b, a))
-                    
-                result.putdata(pixels)
-                result.thumbnail((15, 15))
-                
-                child.tk_image = ImageTk.PhotoImage(result)
-                child.config(image=child.tk_image)
+                child.refresh_image()
             else:
-                self._set_buttons_color(child, inversed_color)
+                self.__apply_theme(child)
+
+    def _recolor_image_folder(self, src: str, dst: str, color: str) -> None:
+        color = ImageColor.getrgb(color)
+        dim = tuple(int(c * 0.6) for c in color)
+        os.makedirs(dst, exist_ok=True)
+        
+        for fname in os.listdir(src):
+            if not fname.endswith(".png"):
+                continue
+            image = Image.open(os.path.join(src, fname)).convert("RGBA")
+            recolored = self._recolor_image(image, color, dim)
+            recolored.save(os.path.join(dst, fname))
+    
+    def _recolor_image(self, image: Image, inversed: tuple[int, int, int], dim: tuple[int]) -> Image:
+        gray = ImageOps.grayscale(image)
+        result = Image.new("RGBA", image.size)
+        
+        pixels = [
+            (
+                int(dim[0] * (1 - t) + inversed[0] * t),
+                int(dim[1] * (1 - t) + inversed[1] * t),
+                int(dim[2] * (1 - t) + inversed[2] * t),
+                a
+            )
+            for g, a in zip(gray.getdata(), image.getchannel("A").getdata())
+            for t in (g / 255,)
+        ]
+            
+        result.putdata(pixels)
+        return result
     
     def _set_textcolor_recursive(self, widget, color: str) -> None:
         try:

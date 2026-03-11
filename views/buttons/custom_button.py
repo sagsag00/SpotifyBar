@@ -14,6 +14,8 @@
 
 from tkinter import Button, Tk, PhotoImage
 from PIL import Image, ImageTk
+from pathlib import Path
+
 from api import Spotify
 
 class CustomButton(Button):
@@ -41,7 +43,13 @@ class CustomButton(Button):
         super().__init__(master, **kwargs)
         
         if image_path is not None:
-            self.image_path = image_path
+            path = Path(image_path)
+            themed_path = path.parent.parent / "buttons_themed" / path.name
+            
+            if themed_path.exists():
+                path = themed_path
+            
+            self.image_path = str(path)
             self.tk_image = self.add_image(image_path)
             self.config(image=self.tk_image, width=24, height=20)
         
@@ -67,3 +75,14 @@ class CustomButton(Button):
     def on_click(self):
         """On click function. Has to implement on each button"""
         raise NotImplementedError("function on_click is not defined.")
+    
+    def refresh_image(self) -> None:
+        """Reload image from disk, picking up themed version if available."""
+        if self.image_path is None:
+            return
+        path = Path(self.image_path)
+        themed_path = path.parent.parent / "buttons_themed" / path.name
+        if themed_path.exists():
+            path = themed_path
+        self.tk_image = self.add_image(str(path))
+        self.config(image=self.tk_image)

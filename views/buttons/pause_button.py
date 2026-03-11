@@ -51,16 +51,15 @@ class PauseButton(CustomButton):
             return
         
         self._is_active = is_active  
-        image_path = "resources/buttons/pause.png" if self._is_active else "resources/buttons/resume.png"
-        self.tk_image = self.add_image(image_path)  
-        self.config(image=self.tk_image)   
+        self.change_image()
         
         logger.debug("PauseButton.on_click: Function has completed.")  
     
     def change_image(self) -> None:
-        image_path = "resources/buttons/pause.png" if self._is_active else "resources/buttons/resume.png"
-        self.tk_image = self.add_image(image_path)  
+        self.image_path = "resources/buttons/pause.png" if self._is_active else "resources/buttons/resume.png"
+        self.tk_image = self.add_image(self.image_path)  
         self.config(image=self.tk_image)
+        self.refresh_image()
         
     @property
     def is_active(self) -> bool:

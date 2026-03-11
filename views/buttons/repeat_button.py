@@ -27,18 +27,19 @@ class RepeatButton(CustomButton):
         # Cycle through the three modes
         if self.mode == "off":
             self.mode = "context"
-            image_path = "resources/buttons/repeat_context.png"
+            self.image_path = "resources/buttons/repeat_context.png"
         elif self.mode == "context":
             self.mode = "track"
-            image_path = "resources/buttons/repeat_track.png"
+            self.image_path = "resources/buttons/repeat_track.png"
         else: 
             self.mode = "off"
-            image_path = "resources/buttons/repeat_off.png"
+            self.image_path = "resources/buttons/repeat_off.png"
             
         self.spotify.set_repeat_mode(self.mode)
         
-        self.tk_image = self.add_image(image_path)
+        self.tk_image = self.add_image(self.image_path)
         self.config(image=self.tk_image)
+        self.refresh_image()
         
         logger.debug("RepeatButton.on_click: Function has completed.")
         
@@ -49,15 +50,16 @@ class RepeatButton(CustomButton):
         
         if mode == "off":
             self.mode = "off"
-            image_path = "resources/buttons/repeat_off.png"
+            self.image_path = "resources/buttons/repeat_off.png"
         elif mode == "context":
             self.mode = "context"
-            image_path = "resources/buttons/repeat_context.png"
+            self.image_path = "resources/buttons/repeat_context.png"
         else: 
             self.mode = "track"
-            image_path = "resources/buttons/repeat_track.png"
+            self.image_path = "resources/buttons/repeat_track.png"
 
-        self.tk_image = self.add_image(image_path)  
+        self.tk_image = self.add_image(self.image_path)  
         self.config(image=self.tk_image) 
+        self.refresh_image()
         
         logger.debug("RepeatButton.load: Function has completed.")
