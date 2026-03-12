@@ -17,33 +17,17 @@ from pathlib import Path
 import sys
 import multiprocessing
 from typing import Union
+import subprocess
 
 from gui import App, EnvInput
 from api import Spotify
 from logger import logger
 from system_tray import SystemTray
+from updater import Updater
 
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
-VERSION = "0.2.6"
-
-def is_bigger_version(version: str, compared_version: str) -> bool:
-    """Checks if version is bigger or equals to compared_version"""
-
-    v1 = [int(x) for x in version.split(".")]
-    v2 = [int(x) for x in compared_version.split(".")]
-
-    return v1 >= v2
-
-def check_new_version() -> bool:
-    response = requests.get("https://github.com/sagsag00/SpotifyBar/releases/latest")
-    new_version = response.url.split("/")[-1].replace("v", "")
-    
-    return not is_bigger_version(VERSION, new_version)
-
-def download_new_version() -> None:
-    response = requests.get("https://github.com/sagsag00/SpotifyBar/releases/latest")
-    new_version = response.url
+VERSION = "0.3"
 
 if __name__ == "__main__":
     multiprocessing.freeze_support()
@@ -51,8 +35,10 @@ if __name__ == "__main__":
     from api.refresh import load_credentials
     if getattr(sys, "frozen", False):
         base_dir = Path(sys.executable).resolve().parent
+        updater_path = base_dir / "Updater.exe"
     else:
         base_dir = Path(__file__).resolve().parent
+        updater_path = base_dir / "updater.py"
     
     logger.info("main_thread: Loading program")
 
@@ -72,9 +58,10 @@ if __name__ == "__main__":
     CLIENT_ID = cred["CLIENT_ID"]
     CLIENT_SECRET = cred["CLIENT_SECRET"]
     
-    if check_new_version():
-        download_new_version()
-        exit(0)
+    download_manager = Updater(VERSION)
+    if download_manager.check_new_version():
+        subprocess.Popen([updater_path, VERSION])
+        sys.exit(0)
     
     spotify = Spotify()
     # if not spotify.open_spotify_app():
