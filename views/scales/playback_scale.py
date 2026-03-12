@@ -48,7 +48,7 @@ class PlaybackScale(Scale):
         scale_y = self.winfo_y()
         scale_width = self.winfo_width()
         
-        self.curr_time.place(x=scale_x - 20, y=scale_y + 8, anchor="center") 
+        self.curr_time.place(x=scale_x - 15, y=scale_y + 8, anchor="center") 
         self.end_time.place(x=scale_x + scale_width + 5, y=scale_y + 8, anchor="center")
 
         logger.debug(f"PlaybackScale.place: PlaybackScale placed at x: {scale_x}, y: {scale_y}, width: {scale_width}")

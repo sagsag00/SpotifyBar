@@ -20,6 +20,7 @@ import threading
 import webbrowser
 from logger import logger
 from typing import Union, Any
+from multiprocessing import Process
     
 class Spotify():
     _instance = None
@@ -49,9 +50,11 @@ class Spotify():
         creds = load_credentials(env_file)
         CLIENT_ID = creds["CLIENT_ID"]
         CLIENT_SECRET = creds["CLIENT_SECRET"]
-        REFRESH_TOKEN = creds["REFRESH_TOKEN"]
         spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
-        spotify_auth.run()
+        
+        REFRESH_TOKEN = spotify_auth.run()
+        
+        
         return spotify_auth.refresh(REFRESH_TOKEN)
         
     def refresh_client(self) -> None:

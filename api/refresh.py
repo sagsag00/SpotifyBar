@@ -26,6 +26,7 @@ import time
 import threading
 import signal
 import sys
+from multiprocessing import Process
 
 if getattr(sys, "frozen", False):
     base_dir = Path(sys.executable).resolve().parent
@@ -56,6 +57,8 @@ class SpotifyAuth:
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = "http://127.0.0.1:5000/callback"  # The servers url.
+        self.server_process = None
+        self.auth_complete = threading.Event()
     
 
     def get_authorization_url(self) -> str:
@@ -142,54 +145,56 @@ class SpotifyAuth:
         except json.JSONDecodeError:
             logger.error(f"SpotifyAuth.handle_response: Response not in JSON format: {response.text}")
 
-    def run(self) -> None:  
+    def run(self) -> str:  
         creds = load_credentials(env_file)
         if not creds["REFRESH_TOKEN"]:
             auth_url = self.get_authorization_url()
             webbrowser.open(auth_url)
-            # app.run("127.0.0.1", 5000)
-            run_simple("127.0.0.1", 5000, app, threaded=True)
             
-def shutdown_server():
-    """Shuts down the server"""
-    time.sleep(5)  # Sleep for 5 seconds before shutting down
-    logger.info("Shutting the server down")
-    pid = os.getpid()  # Get the current process ID
-    os.kill(pid, signal.SIGINT) 
-  
-@app.route('/shutdown', methods=['POST'])
-def shutdown():
-    """Shutdown method of the flask server"""
-    logger.info("Shutdown signal received")
-    threading.Thread(target=shutdown_server).start()  # Start background task
-    return 'Server shutting down...', 200 
+            self.server_process = Process(target=run_server)
+            self.server_process.start()
+            
+            while True:
+                time.sleep(0.5)
+                creds = load_credentials(env_file)
 
-# Flask route to handle the redirect
-@app.route('/callback')
-def callback():
-    """The website that handles the redirect from the authorization url."""
+                if creds["REFRESH_TOKEN"]:
+                    break
+            
+            if self.server_process.is_alive():
+                self.server_process.terminate()
+                self.server_process.join()
+        return creds["REFRESH_TOKEN"]
+   
+   
+def run_server():
+    run_simple("127.0.0.1", 5000, app, threaded=True)  
+         
+def save_refresh_token():
     code = request.args.get('code')
     creds = load_credentials(env_file)
     CLIENT_ID = creds["CLIENT_ID"]
     CLIENT_SECRET = creds["CLIENT_SECRET"]
     REFRESH_TOKEN = creds["REFRESH_TOKEN"]
     spotify_auth = SpotifyAuth(CLIENT_ID, CLIENT_SECRET)
-    if code:
-        access_token, refresh_token = spotify_auth.exchange_code_for_token(code)
-        logger.critical(f"{refresh_token=}", f"{REFRESH_TOKEN=}")
-        if refresh_token:
-            save_to_env("REFRESH_TOKEN", refresh_token)
-        
-        if access_token:
-            logger.info(f"refresh.callback: Access Token: {access_token}")
-            logger.info(f"refresh.callback: Refresh Token: {refresh_token}")
+    if not code:
+        return
+    access_token, refresh_token = spotify_auth.exchange_code_for_token(code)
+    if refresh_token:
+        save_to_env("REFRESH_TOKEN", refresh_token)
+    
+    if access_token:
+        logger.info(f"refresh.callback: Access Token: {access_token}")
+        logger.info(f"refresh.callback: Refresh Token: {refresh_token}")
 
-            new_access_token = spotify_auth.refresh(refresh_token)
-            if new_access_token:
-                logger.info(f"refresh.callback: New Access Token: {new_access_token}")
-             
-        threading.Thread(target=shutdown_server).start()  
-        
+        new_access_token = spotify_auth.refresh(refresh_token)
+        if new_access_token:
+            logger.info(f"refresh.callback: New Access Token: {new_access_token}")
+            
+@app.route('/callback')
+def callback():
+    """The website that handles the redirect from the authorization url."""
+    save_refresh_token()
     return "Authorization complete. You can close this window."
 
 def save_to_env(name: str, value: str) -> None:
@@ -199,8 +204,8 @@ def save_to_env(name: str, value: str) -> None:
         name (str): The name of the environment variable.
         value (str): The value of the environment variable.
     """
-    if getattr(sys, 'frozen', False):  # Check if running as an executable
-        base_dir = Path(sys.executable).resolve().parents[0]  # Frozen app bundle directory
+    if getattr(sys, 'frozen', False): 
+        base_dir = Path(sys.executable).resolve().parents[0]  
     else:
         base_dir = Path(__file__).resolve().parents[1] 
         

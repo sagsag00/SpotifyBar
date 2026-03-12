@@ -21,11 +21,9 @@ from api import Spotify
 from logger import logger
 from system_tray import SystemTray
 
-#TODO When pressing next the background doesn't chagne, and even after a while, it won't refresh
-#TODO When starting the app, do the EnvInput, the submit doesn't work yet
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
-VERSION = "0.2.25"
+VERSION = "0.2.5"
 
 def is_bigger_version(version: str, compared_version: str) -> bool:
     """Checks if version is bigger or equals to compared_version"""
@@ -111,7 +109,7 @@ if __name__ == "__main__":
     # Assign values from config_values dictionary
     # the or is in the cases of it being empty string "" or None.
     program_title: str = config_values.get("program_title") or "Spotify Bar"
-    position: str = config_values.get("position") or "bottom_start"
+    position: str = config_values.get("position") or "top_end"
     padding: int = int(config_values.get("padding") or 10)
     opacity: float = float(config_values.get("opacity") or 1)
     background_color: str = config_values.get("background_color") or "lightgray"

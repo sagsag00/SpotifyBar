@@ -34,7 +34,7 @@ class App(Base):
     def __init__(self,
                  title: str,
                  icon_path: str,
-                 position = "top_start",
+                 position = "top_end",
                  padding = 10,
                  opacity: float = 1,
                  background_color = "lightgray",
