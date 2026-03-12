@@ -15,6 +15,8 @@ import threading
 import requests
 from pathlib import Path
 import sys
+import multiprocessing
+from typing import Union
 
 from gui import App, EnvInput
 from api import Spotify
@@ -23,7 +25,7 @@ from system_tray import SystemTray
 
 # Author: Sagi Tsafrir
 # Github: https://github.com/sagsag00/SpotifyBar
-VERSION = "0.2.5"
+VERSION = "0.2.6"
 
 def is_bigger_version(version: str, compared_version: str) -> bool:
     """Checks if version is bigger or equals to compared_version"""
@@ -44,8 +46,9 @@ def download_new_version() -> None:
     new_version = response.url
 
 if __name__ == "__main__":
-    from api.refresh import load_credentials
+    multiprocessing.freeze_support()
     
+    from api.refresh import load_credentials
     if getattr(sys, "frozen", False):
         base_dir = Path(sys.executable).resolve().parent
     else:
@@ -87,9 +90,10 @@ if __name__ == "__main__":
         lines = ["program_title=\n",
                  "opacity=\n",
                  "background_color=\n",
+                 "buttons_color=\n"
                  "position=\n",
                  "padding=\n",
-                 "background_mode=default\n",
+                 "background_mode=song\n",
                  "soft_color_mode=\n"
                  ]
         
@@ -98,30 +102,28 @@ if __name__ == "__main__":
             
         logger.info("main_thread: 'config.ini' created.")
         
-    # Create a dictionary to store the configuration values
     config_values = {}
     for line in lines:
-        # Split each line at the '=' sign to separate keys and values
         if '=' in line:
             key, value = line.strip().split('=', 1)
             config_values[key] = value
     
-    # Assign values from config_values dictionary
-    # the or is in the cases of it being empty string "" or None.
     program_title: str = config_values.get("program_title") or "Spotify Bar"
     position: str = config_values.get("position") or "top_end"
     padding: int = int(config_values.get("padding") or 10)
     opacity: float = float(config_values.get("opacity") or 1)
     background_color: str = config_values.get("background_color") or "lightgray"
-    background_mode: str = config_values.get("background_mode") or "default" 
-    soft_color_mode: str = bool(config_values.get("soft_color_mode")) or True
-    
+    buttons_color: Union[str, None] = str(config_values.get("buttons_color")) or None
+    background_mode: str = config_values.get("background_mode") or "default"
+    soft_color_mode: bool = str(config_values.get("soft_color_mode") or "true").lower() in ("1", "true", "yes", "on")
+        
     app = App(program_title,
               "icon.ico",
               position=position,
               padding=padding,
               opacity=opacity,
               background_color=background_color,
+              buttons_color=buttons_color,
               background_mode=background_mode,
               soft_color_mode=soft_color_mode
               )

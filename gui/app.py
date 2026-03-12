@@ -21,6 +21,7 @@ import requests
 from io import BytesIO
 from collections import defaultdict
 import colorsys
+from typing import Union
 
 from api import Spotify
 from logger import logger
@@ -38,18 +39,23 @@ class App(Base):
                  padding = 10,
                  opacity: float = 1,
                  background_color = "lightgray",
+                 buttons_color: Union[str, None] = None,
                  background_mode = "default",
                  soft_color_mode = True) -> None:
         logger.debug(f"App.__init__: Initializing application with {title=}, {icon_path=}, {position=}, {padding=}, {opacity=}, {background_color=}")
         self.__position: str = position
         self.__padding: int = padding
         self.__background_mode: str = background_mode
+        self.__buttons_color: Union[str, None] = buttons_color
         self.__soft_color_mode: bool = soft_color_mode
         
         self.system_tray = SystemTray()
         self.spotify = Spotify()
         
-        super().__init__(title, icon_path, opacity, background_color)
+        super().__init__(title=title,
+                         icon_path=icon_path,
+                         opacity=opacity,
+                         background_color=background_color)
 
     def _setup(self) -> None:
         """Applies App-specific geometry, background mode and widgets"""
@@ -185,17 +191,20 @@ class App(Base):
             image = Image.open(BytesIO(response.content))
 
             color = self._get_dominant_color(image)
-            self._window.configure(background=color)
-            self._set_bg_recursive(self._window, color)
-            
-            inversed_color = self._get_inversed_color(color)
-            self._set_textcolor_recursive(self._window, inversed_color)
-            self.apply_theme(inversed_color)
+            self.set_theme(color)
             
             self._window.update_idletasks()
             logger.info("App.set_background_song: Done.")
         except Exception as e:
             logger.error(f"App.set_background_song: Error setting background image: {e}")
+
+    def set_theme(self, color: str) -> None:
+        self._window.configure(background=color)
+        self._set_bg_recursive(self._window, color)
+        
+        inversed_color = self._get_inversed_color(color)
+        self._set_textcolor_recursive(self._window, inversed_color)
+        self.apply_theme(inversed_color)
 
     def _get_inversed_color(self, color: str) -> str:
         return "#FFFFFF" if self._is_dark(color) else "#696B6B"
@@ -273,6 +282,8 @@ class App(Base):
                 child.configure(activebackground=color)
 
     def _is_dark(self, hex_color: str) -> bool:
+        if "#" not in hex_color:
+            return False
         hex_color = hex_color.lstrip("#")
         r, g, b = int(hex_color[0:2], 16), int(hex_color[2:4], 16), int(hex_color[4:6], 16)
         return (0.299 * r + 0.587 * g + 0.114 * b) < 128
@@ -378,8 +389,20 @@ class App(Base):
                 )
         
         self.system_tray.gui_manager = self.gui_manager 
+        
+        self.set_background()
 
         logger.debug("App._create_buttons: Done.")
+
+    def set_background(self) -> None:
+        if not self.__background_mode == "default":
+            return
+        if self._background_color is not None:
+            self.set_theme(self._background_color)
+        if self.__buttons_color is not None:
+            self._set_textcolor_recursive(self._window, self.__buttons_color)
+            self.apply_theme(self.__buttons_color)
+
 
     def _on_next_song(self, image_url: str | None = None) -> None:
         """Called on the next song"""

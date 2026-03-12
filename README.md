@@ -20,6 +20,7 @@ You can customize some aspects of the app inside the config.ini file created in 
     program_title=
     opacity=
     background_color=
+    buttons_color=
     position=
     padding=
     background_mode=
@@ -34,7 +35,7 @@ Options for the position: `top_start`, `top_end`, `bottom_start` and `bottom_end
 You can change the button resources if you'd like. Go to the `/resources/buttons` folder.
 Inside you can see each resource and change it as you like.
 
-For `background_mode` there are 2 modes: `default` and `background_only`.
+For `background_mode` there are 2 modes: `default` and `song`.
 
-The `default` mode will not chagne anything, with it you can change the `background_color`.
-The `background_only` mode will change the background to the current songs image with blur. Chainging `background_color` will do nothing.
+The `default` mode will not chagne anything, with it you can change the `background_color` and `buttons_color`.
+The `song` mode will change the background to the current songs most dominant color. Chainging `background_color` and `buttons_color` will do nothing.

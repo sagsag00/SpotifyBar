@@ -54,7 +54,6 @@ class Spotify():
         
         REFRESH_TOKEN = spotify_auth.run()
         
-        
         return spotify_auth.refresh(REFRESH_TOKEN)
         
     def refresh_client(self) -> None:
