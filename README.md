@@ -38,4 +38,4 @@ Inside you can see each resource and change it as you like.
 For `background_mode` there are 2 modes: `default` and `song`.
 
 The `default` mode will not chagne anything, with it you can change the `background_color` and `buttons_color`.
-The `song` mode will change the background to the current songs most dominant color. Chainging `background_color` and `buttons_color` will do nothing.
+The `song` mode will change the background to the current songs most dominant color. Changing `background_color` and `buttons_color` will do nothing.
